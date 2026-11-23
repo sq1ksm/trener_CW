@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trener Telegrafii CW (MIDI)</title>
+    <link rel="stylesheet" href="style.css?v=6">
+</head>
+
+<body>
+    <div class="topbar">
+        <h1>Trener Telegrafii CW</h1>
+        <div class="row">
+            <button type="button" class="danger-btn" id="unlock-audio-btn">🔇 Włącz dźwięk</button>
+            <span id="quick-wpm-badge" style="color:#7fd1b9; font-weight:600;">20 WPM</span>
+            <a href="pomoc.html" target="_blank" rel="noopener noreferrer" class="nav-btn"
+                style="text-decoration:none; display:inline-flex; align-items:center;">❓ POMOC</a>
+            <button type="button" class="nav-btn" id="toggle-settings-btn">⚙️ Ustawienia</button>
+        </div>
+    </div>
+    <p class="status" id="status">Inicjalizacja Web MIDI…</p>
+
+    <div id="settings-drawer" class="drawer">
+        <fieldset>
+            <legend>Połączenie MIDI (Dongle Vail)</legend>
+            <div class="row">
+                <label style="flex:1; min-width:220px;">Wejście (Odbiór): <select id="midi-in"
+                        style="flex:1;"></select></label>
+                <label style="flex:1; min-width:220px;">Wyjście (Dongle): <select id="midi-out"
+                        style="flex:1;"></select></label>
+            </div>
+            <div class="row" style="margin-top:.4rem;">
+                <label>Kanał: <select id="midi-ch">
+                        <option value="all">Wszystkie</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select></label>
+                <label>Nuta klucza: <input type="number" id="note-num" value="60" min="0" max="127"
+                        style="width:4.5em;"></label>
+                <label><input type="checkbox" id="any-note" checked> Akceptuj każdą nutę</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Odsłuch Audio (Sidetone)</legend>
+            <div class="row">
+                <label style="flex:1; min-width:220px;">Głośność: <input type="range" id="vol-slider" min="0" max="100"
+                        value="50"><output id="vol-out">50%</output></label>
+                <label style="flex:1; min-width:220px;">Ton (Hz): <input type="range" id="freq-slider" min="400"
+                        max="1000" step="10" value="650"><output id="freq-out">650 Hz</output></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Tempo WPM, Przerwy i Kontrola Rytmu</legend>
+            <label>WPM (Dongle + Dekoder): <input type="range" id="wpm-slider" min="5" max="45" value="20"><output
+                    id="wpm-out">20 WPM</output></label>
+            <label>Przerwa między literami (poszerzenie): <input type="range" id="char-gap-slider" min="2.0" max="6.0"
+                    step="0.2" value="3.0"><output id="char-gap-out">3.0x dit</output></label>
+            <div style="margin-top:.5rem; padding-top:.5rem; border-top:1px solid #2a2f38;">
+                <label><input type="checkbox" id="strict-gap-check" checked> Resetuj wyraz od nowa przy zbyt długiej
+                    przerwie</label>
+                <label id="max-gap-row">Maks. przerwa w wyrazie (limit): <input type="range" id="max-gap-slider" min="5"
+                        max="25" step="1" value="10"><output id="max-gap-out">10x dit</output></label>
+            </div>
+            <div class="row" style="margin-top:.5rem; padding-top:.5rem; border-top:1px solid #2a2f38;">
+                <span style="color:#9aa3b0; font-size:.9rem;">Tryb Dongla:</span>
+                <button type="button" class="mode-btn active-mode" data-prog="7">Iambic A</button>
+                <button type="button" class="mode-btn" data-prog="8">Iambic B</button>
+                <button type="button" class="mode-btn" data-prog="1">Straight Key</button>
+                <label style="margin-left:auto;"><input type="checkbox" id="sync-decoder" checked> Synchronizuj dekoder
+                    z WPM</label>
+            </div>
+            <div id="manual-rx-box" style="display:none; margin-top:.4rem;">
+                <label>Osobne WPM dekodera: <input type="range" id="rx-wpm-slider" min="5" max="45" value="20"><output
+                        id="rx-wpm-out">20 WPM</output></label>
+            </div>
+            <div class="thresholds" id="thresholds-info">dit: 60 ms | litera po 180 ms | limit pauzy: 600 ms</div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Zdarzenia MIDI (debug)</legend>
+            <div id="log"></div>
+        </fieldset>
+    </div>
+
+    <fieldset>
+        <legend>Lekcja telegrafii — 6-znakowe grupy / znaki wywoławcze</legend>
+        <div class="row">
+            <label>Tryb losowania:
+                <select id="lesson-type">
+                    <option value="callsign">Znaki wywoławcze (np. SQ1KSM)</option>
+                    <option value="mixed">Losowe 6 znaków (litery + cyfry)</option>
+                    <option value="letters">Tylko 6 liter (A-Z)</option>
+                </select>
+            </label>
+        </div>
+        <div class="lesson-box" id="lesson-box">
+            <div class="lesson-grid" id="lesson-grid"></div>
+            <div class="lesson-msg" id="lesson-msg"></div>
+            <div class="row" style="justify-content:center; margin-top:.8rem;">
+                <button type="button" class="force-btn" id="lesson-next-btn">Następny znak</button>
+                <button type="button" id="lesson-play-btn">🔊 Odsłuchaj wzór</button>
+                <button type="button" id="lesson-reset-btn">Powtórz bieżący</button>
+            </div>
+            <div class="lesson-stats" id="lesson-stats">Zaliczone: 0 | Błędy: 0</div>
+        </div>
+    </fieldset>
+
+    <script src="script.js?v=6"></script>
+</body>
+
+</html>

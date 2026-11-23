@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomoc — Trener Telegrafii CW (MIDI)</title>
+    <style>
+        :root {
+            --bg: #12151e;
+            --card: #1a1f2c;
+            --border: #2c3446;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --ok: #00e676;
+            --warn: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .btn-back {
+            padding: 8px 14px;
+            background: #232938;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.15rem;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        ul,
+        ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: #0f131a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--ok);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        .tip {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 12px 14px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 12px;
+            font-size: 0.95rem;
+        }
+
+        .warn {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid var(--warn);
+            padding: 12px 14px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 12px;
+            font-size: 0.95rem;
+        }
+
+        .morse-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .morse-item {
+            background: #131722;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: ui-monospace, monospace;
+        }
+
+        .morse-char {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
+        .morse-code {
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Instrukcja obsługi — Trener Telegrafii CW</h1>
+            <button class="btn-back" onclick="window.close()">✕ Zamknij pomoc</button>
+        </header>
+
+        <section>
+            <h2>1. Podłączenie adaptera Vail MIDI</h2>
+            <ol>
+                <li>Podłącz adapter Vail z kluczem telegraficznym (manipulatorem łopatkowym lub kluczem sztorcowym) do
+                    portu USB komputera.</li>
+                <li>Otwórz trener w przeglądarce wspierającej <strong>Web MIDI API</strong> (Chrome, Edge, Opera lub
+                    Brave).</li>
+                <li>Zaakceptuj prośbę przeglądarki o dostęp do urządzeń MIDI.</li>
+                <li>Trener automatycznie przełączy adapter Vail z domyślnego trybu klawiatury w <strong>tryb
+                        MIDI</strong> (komunikat <code>CC#0 = 1</code>) oraz ustawi prędkość WPM i tryb klucza.</li>
+            </ol>
+            <div class="warn">
+                <strong>Brak dźwięku po starcie?</strong> Przeglądarki blokują dźwięk do pierwszej interakcji
+                użytkownika. Kliknij dowolne miejsce na stronie lub przycisk <strong>Włącz dźwięk</strong> w górnym
+                pasku.
+            </div>
+        </section>
+
+        <section>
+            <h2>2. Tryby pracy klucza (Dongle)</h2>
+            <ul>
+                <li><strong>Iambic A (Program 7):</strong> Standardowy tryb dla manipulatora dwułopatkowego. Po
+                    puszczeniu obu łopatek klucz kończy aktualnie nadawany element (kropkę lub kreskę).</li>
+                <li><strong>Iambic B (Program 8):</strong> Po puszczeniu obu łopatek w trakcie nadawania elementu klucz
+                    dodaje jeszcze jeden naprzemienny element z pamięci.</li>
+                <li><strong>Straight Key (Program 1):</strong> Tryb klucza sztorcowego (lub klucza typu Bug) — długość
+                    kropek i kresek zależy wyłącznie od czasu trzymania styku przez operatora.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>3. Tempo WPM, przerwy i kontrola rytmu</h2>
+            <ul>
+                <li><strong>WPM (Words Per Minute):</strong> Prędkość nadawania (5–45 WPM). Jednostka podstawowa
+                    <code>dit</code> (czas trwania kropki) obliczana jest ze wzoru <code>1200 / WPM</code> ms (np. dla
+                    20 WPM wynosi 60 ms).</li>
+                <li><strong>Przerwa między literami (poszerzenie):</strong> Określa, po jakim czasie bezczynności
+                    dekoder uznaje literę za zakończoną (domyślnie <code>3.0x dit</code>). Zwiększenie tej wartości
+                    ułatwia naukę początkującym (metoda Farnswortha).</li>
+                <li><strong>Maks. przerwa w wyrazie (limit):</strong> Jeśli zaznaczono opcję resetowania przy zbyt
+                    długiej przerwie, przekroczenie tego czasu w trakcie nadawania 6-znakowej grupy zeruje bieżący
+                    wyraz, wymuszając płynne nadawanie całego znaku.</li>
+                <li><strong>Synchronizuj dekoder z WPM:</strong> Zalecane. Dekoder zawsze dopasowuje próg rozróżniania
+                    kropki od kreski do prędkości ustawionej w adapterze.</li>
+            </ul>
+            <div class="tip">
+                <strong>Wskazówka:</strong> Przycisk <strong>Odsłuchaj wzór</strong> pozwala najpierw usłyszeć
+                prawidłowy rytm wylosowanego znaku wywoławczego lub grupy znaków przed jej nadaniem.
+            </div>
+        </section>
+
+        <section>
+            <h2>4. Tabela znaków obsługiwanych przez dekoder</h2>
+            <div class="morse-grid" id="morse-table"></div>
+        </section>
+    </div>
+
+    <script>
+        const CHARS = [
+            ["A", ".-"], ["B", "-..."], ["C", "-.-."], ["D", "-.."], ["E", "."], ["F", "..-."],
+            ["G", "--."], ["H", "...."], ["I", ".."], ["J", ".---"], ["K", "-.-"], ["L", ".-.."],
+            ["M", "--"], ["N", "-."], ["O", "---"], ["P", ".--."], ["Q", "--.-"], ["R", ".-."],
+            ["S", "..."], ["T", "-"], ["U", "..-"], ["V", "...-"], ["W", ".--"], ["X", "-..-"],
+            ["Y", "-.--"], ["Z", "--.."],
+            ["0", "-----"], ["1", ".----"], ["2", "..---"], ["3", "...--"], ["4", "....-"],
+            ["5", "....."], ["6", "-...."], ["7", "--..."], ["8", "---.."], ["9", "----."],
+            [".", ".-.-.-"], [",", "--..--"], ["?", "..--.."], ["/", "-..-."], ["=", "-...-"],
+            ["+", ".-.-."], ["-", "-....-"], ["@", ".--.-."], ["<KA>", "-.-.-"], ["<SK>", "...-.-"],
+            ["Ą", ".-.-"], ["Ć", "-.-.."], ["Ę", "..-.."], ["Ł", ".-..-"], ["Ń", "--.--"],
+            ["Ó", "---."], ["Ś", "...-..."], ["Ż", "--..-."], ["Ź", "--..-"]
+        ];
+        const grid = document.getElementById("morse-table");
+        CHARS.forEach(([ch, code]) => {
+            const div = document.createElement("div");
+            div.className = "morse-item";
+            div.innerHTML = `<span class="morse-char">${ch.replace("<", "&lt;").replace(">", "&gt;")}</span><span class="morse-code">${code}</span>`;
+            grid.appendChild(div);
+        });
+    </script>
+</body>
+
+</html>
