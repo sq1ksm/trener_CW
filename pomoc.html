@@ -1,244 +1,339 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomoc — Trener Telegrafii CW (MIDI)</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pomoc — Trener Telegrafii CW (MIDI) by SQ1KSM</title>
     <style>
         :root {
-            --bg: #12151e;
-            --card: #1a1f2c;
-            --border: #2c3446;
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --accent: #38bdf8;
-            --ok: #00e676;
-            --warn: #fbbf24;
-        }
-
-        * {
-            box-sizing: border-box;
+            color-scheme: dark;
         }
 
         body {
-            margin: 0;
-            padding: 20px;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
+            font: 15px/1.6 system-ui, sans-serif;
+            background: #14161a;
+            color: #e6e6e6;
+            max-width: 840px;
+            margin: 1.5rem auto;
+            padding: 0 1rem 2rem 1rem;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        header {
+        .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #2a2f38;
+            padding-bottom: .7rem;
         }
 
         h1 {
+            font-size: 1.35rem;
             margin: 0;
-            font-size: 1.5rem;
-            color: var(--accent);
-        }
-
-        .btn-back {
-            padding: 8px 14px;
-            background: #232938;
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            color: #7fd1b9;
         }
 
         h2 {
-            margin-top: 0;
-            font-size: 1.15rem;
-            color: var(--accent);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
+            font-size: 1.1rem;
+            color: #00d1b2;
+            margin: 1.4rem 0 .5rem 0;
+            border-left: 3px solid #00a896;
+            padding-left: .6rem;
+        }
+
+        h3 {
+            font-size: .98rem;
+            color: #e6e6e6;
+            margin: 1rem 0 .35rem 0;
+        }
+
+        .card {
+            background: #181b20;
+            border: 1px solid #2a2f38;
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: .8rem 0;
         }
 
         ul,
         ol {
-            padding-left: 20px;
-            margin: 10px 0;
+            margin: .4rem 0;
+            padding-left: 1.3rem;
         }
 
         li {
-            margin-bottom: 8px;
+            margin: .35rem 0;
         }
 
-        code {
-            background: #0f131a;
-            padding: 2px 6px;
+        code,
+        .mono {
+            font-family: 'Fira Code', ui-monospace, Consolas, monospace;
+            background: #0d0f12;
+            color: #7fd1b9;
+            padding: .12rem .4rem;
             border-radius: 4px;
-            color: var(--ok);
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 0.9em;
+            border: 1px solid #2a2f38;
+            font-size: .9em;
         }
 
-        .tip {
-            background: rgba(56, 189, 248, 0.1);
-            border-left: 4px solid var(--accent);
-            padding: 12px 14px;
-            border-radius: 0 6px 6px 0;
-            margin-top: 12px;
-            font-size: 0.95rem;
+        .badge {
+            display: inline-block;
+            background: #243040;
+            border: 1px solid #364252;
+            color: #e6e6e6;
+            padding: .15rem .5rem;
+            border-radius: 5px;
+            font-size: .85rem;
+            font-weight: 600;
         }
 
-        .warn {
-            background: rgba(251, 191, 36, 0.1);
-            border-left: 4px solid var(--warn);
-            padding: 12px 14px;
-            border-radius: 0 6px 6px 0;
-            margin-top: 12px;
-            font-size: 0.95rem;
+        .badge-ok {
+            background: #00a896;
+            color: #000;
+            border-color: #00a896;
+        }
+
+        .badge-err {
+            background: #e53935;
+            color: #fff;
+            border-color: #ff6f60;
         }
 
         .morse-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 8px;
-            margin-top: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+            gap: .45rem;
+            margin-top: .5rem;
         }
 
         .morse-item {
-            background: #131722;
-            border: 1px solid var(--border);
+            background: #0d0f12;
+            border: 1px solid #2a2f38;
             border-radius: 6px;
-            padding: 8px 10px;
+            padding: .35rem .55rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: ui-monospace, monospace;
+            font-family: 'Fira Code', ui-monospace, Consolas, monospace;
         }
 
-        .morse-char {
-            font-weight: 700;
-            color: var(--text);
-            font-size: 1.05rem;
+        .morse-ch {
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 1rem;
         }
 
         .morse-code {
-            color: var(--accent);
-            font-weight: 600;
-            letter-spacing: 1px;
+            color: #7fd1b9;
+            font-weight: bold;
+            letter-spacing: .08em;
+        }
+
+        .tip {
+            background: #0e2a26;
+            border: 1px solid #00a896;
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            margin: .8rem 0;
+            font-size: .92rem;
+        }
+
+        button {
+            background: #00d1b2;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            padding: .45rem .9rem;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>Instrukcja obsługi — Trener Telegrafii CW</h1>
-            <button class="btn-back" onclick="window.close()">✕ Zamknij pomoc</button>
-        </header>
 
-        <section>
-            <h2>1. Podłączenie adaptera Vail MIDI</h2>
-            <ol>
-                <li>Podłącz adapter Vail z kluczem telegraficznym (manipulatorem łopatkowym lub kluczem sztorcowym) do
-                    portu USB komputera.</li>
-                <li>Otwórz trener w przeglądarce wspierającej <strong>Web MIDI API</strong> (Chrome, Edge, Opera lub
-                    Brave).</li>
-                <li>Zaakceptuj prośbę przeglądarki o dostęp do urządzeń MIDI.</li>
-                <li>Trener automatycznie przełączy adapter Vail z domyślnego trybu klawiatury w <strong>tryb
-                        MIDI</strong> (komunikat <code>CC#0 = 1</code>) oraz ustawi prędkość WPM i tryb klucza.</li>
-            </ol>
-            <div class="warn">
-                <strong>Brak dźwięku po starcie?</strong> Przeglądarki blokują dźwięk do pierwszej interakcji
-                użytkownika. Kliknij dowolne miejsce na stronie lub przycisk <strong>Włącz dźwięk</strong> w górnym
-                pasku.
-            </div>
-        </section>
-
-        <section>
-            <h2>2. Tryby pracy klucza (Dongle)</h2>
-            <ul>
-                <li><strong>Iambic A (Program 7):</strong> Standardowy tryb dla manipulatora dwułopatkowego. Po
-                    puszczeniu obu łopatek klucz kończy aktualnie nadawany element (kropkę lub kreskę).</li>
-                <li><strong>Iambic B (Program 8):</strong> Po puszczeniu obu łopatek w trakcie nadawania elementu klucz
-                    dodaje jeszcze jeden naprzemienny element z pamięci.</li>
-                <li><strong>Straight Key (Program 1):</strong> Tryb klucza sztorcowego (lub klucza typu Bug) — długość
-                    kropek i kresek zależy wyłącznie od czasu trzymania styku przez operatora.</li>
-            </ul>
-        </section>
-
-        <section>
-            <h2>3. Tempo WPM, przerwy i kontrola rytmu</h2>
-            <ul>
-                <li><strong>WPM (Words Per Minute):</strong> Prędkość nadawania (5–45 WPM). Jednostka podstawowa
-                    <code>dit</code> (czas trwania kropki) obliczana jest ze wzoru <code>1200 / WPM</code> ms (np. dla
-                    20 WPM wynosi 60 ms).</li>
-                <li><strong>Przerwa między literami (poszerzenie):</strong> Określa, po jakim czasie bezczynności
-                    dekoder uznaje literę za zakończoną (domyślnie <code>3.0x dit</code>). Zwiększenie tej wartości
-                    ułatwia naukę początkującym (metoda Farnswortha).</li>
-                <li><strong>Maks. przerwa w wyrazie (limit):</strong> Jeśli zaznaczono opcję resetowania przy zbyt
-                    długiej przerwie, przekroczenie tego czasu w trakcie nadawania 6-znakowej grupy zeruje bieżący
-                    wyraz, wymuszając płynne nadawanie całego znaku.</li>
-                <li><strong>Synchronizuj dekoder z WPM:</strong> Zalecane. Dekoder zawsze dopasowuje próg rozróżniania
-                    kropki od kreski do prędkości ustawionej w adapterze.</li>
-            </ul>
-            <div class="tip">
-                <strong>Wskazówka:</strong> Przycisk <strong>Odsłuchaj wzór</strong> pozwala najpierw usłyszeć
-                prawidłowy rytm wylosowanego znaku wywoławczego lub grupy znaków przed jej nadaniem.
-            </div>
-        </section>
-
-        <section>
-            <h2>4. Tabela znaków obsługiwanych przez dekoder</h2>
-            <div class="morse-grid" id="morse-table"></div>
-        </section>
+    <div class="topbar">
+        <h1>❓ Instrukcja obsługi — Trener Telegrafii CW (MIDI)</h1>
+        <button type="button" onclick="window.close()">✕ Zamknij pomoc</button>
     </div>
 
-    <script>
-        const CHARS = [
-            ["A", ".-"], ["B", "-..."], ["C", "-.-."], ["D", "-.."], ["E", "."], ["F", "..-."],
-            ["G", "--."], ["H", "...."], ["I", ".."], ["J", ".---"], ["K", "-.-"], ["L", ".-.."],
-            ["M", "--"], ["N", "-."], ["O", "---"], ["P", ".--."], ["Q", "--.-"], ["R", ".-."],
-            ["S", "..."], ["T", "-"], ["U", "..-"], ["V", "...-"], ["W", ".--"], ["X", "-..-"],
-            ["Y", "-.--"], ["Z", "--.."],
-            ["0", "-----"], ["1", ".----"], ["2", "..---"], ["3", "...--"], ["4", "....-"],
-            ["5", "....."], ["6", "-...."], ["7", "--..."], ["8", "---.."], ["9", "----."],
-            [".", ".-.-.-"], [",", "--..--"], ["?", "..--.."], ["/", "-..-."], ["=", "-...-"],
-            ["+", ".-.-."], ["-", "-....-"], ["@", ".--.-."], ["<KA>", "-.-.-"], ["<SK>", "...-.-"],
-            ["Ą", ".-.-"], ["Ć", "-.-.."], ["Ę", "..-.."], ["Ł", ".-..-"], ["Ń", "--.--"],
-            ["Ó", "---."], ["Ś", "...-..."], ["Ż", "--..-."], ["Ź", "--..-"]
-        ];
-        const grid = document.getElementById("morse-table");
-        CHARS.forEach(([ch, code]) => {
-            const div = document.createElement("div");
-            div.className = "morse-item";
-            div.innerHTML = `<span class="morse-char">${ch.replace("<", "&lt;").replace(">", "&gt;")}</span><span class="morse-code">${code}</span>`;
-            grid.appendChild(div);
-        });
-    </script>
+    <div class="card">
+        <h2>1. Szybki start i podłączenie sprzętu</h2>
+        <ol>
+            <li><strong>Przeglądarka.</strong> Użyj przeglądarki obsługującej Web MIDI API (Google Chrome, Microsoft
+                Edge, Opera lub Android Chrome przez adapter OTG).</li>
+            <li><strong>Dongle Vail / klucz MIDI.</strong> Podłącz interfejs USB przed otwarciem strony (lub odśwież
+                stronę po podłączeniu). W zakładce <code>⚙ Ustawienia</code> wybierz porty Wejścia i Wyjścia MIDI oraz
+                jeden z 5 trybów pracy klucza: <code>Iambic A</code>, <code>Iambic B</code>, <code>Ultimatic</code>,
+                <code>Bug</code> lub <code>Straight Key</code>.
+            </li>
+            <li><strong>Dźwięk (Sidetone).</strong> Jeśli na górze widoczny jest czerwony przycisk <span
+                    class="badge badge-err">🔇 Włącz dźwięk</span>, kliknij go raz (lub dotknij ekranu), aby odblokować
+                audio w przeglądarce.</li>
+            <li><strong>Wygaszanie ekranu.</strong> Podczas pracy na telefonie aplikacja automatycznie blokuje
+                wygaszanie ekranu (<em>Screen Wake Lock</em>).</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>2. Tryby lekcji do wyboru</h2>
+        <ul>
+            <li><strong>Metoda Kocha (stopniowe pary).</strong> Pełna 40-znakowa sekwencja (zgodna z LCWO / G4FON)
+                podzielona na 20 par: <code>KM</code>, <code>RS</code>, <code>UA</code>, <code>PT</code>,
+                <code>LO</code>, <code>WI</code>, <code>NJ</code>, <code>EF</code>, <code>ØY</code>, <code>VG</code>,
+                <code>5Q</code>, <code>9Z</code>, <code>H3</code>, <code>8B</code>, <code>?4</code>, <code>27</code>,
+                <code>C1</code>, <code>D6</code>, <code>X=</code>, <code>/&lt;SK&gt;</code>. Możesz ćwiczyć <em>tylko
+                    nowe znaki</em> z wybranej lekcji albo tryb <em>ze wszystkimi poprzednimi</em> (zwiększający
+                częstotliwość nowej pary).
+            </li>
+            <li><strong>Znaki wywoławcze.</strong> Generuje realistyczne znaki krótkofalarskie (np. <code>SQ1KSM</code>,
+                <code>DL4AB</code>, <code>K1A</code>) dopasowane do wybranej długości (od 1 do 10 znaków).
+            </li>
+            <li><strong>Krótkie łączności (QSO).</strong> Ćwiczy całe frazy stosowane na pasmach (np.
+                <code>CQ TEST SQ1KSM</code>, <code>CQ SOTA SQ1KSM/P</code>, raporty <code>599</code>/<code>579</code>,
+                pożegnanie <code>73 &lt;SK&gt;</code>) z automatycznym wstawieniem Twojego znaku wpisanego w
+                <code>⚙ Ustawienia</code>.
+            </li>
+            <li><strong>Losowe znaki / Tylko litery.</strong> Grupy losowych liter oraz cyfr o wybranej długości od 1 do
+                10 znaków.</li>
+            <li><strong>Własny plik (.txt / .csv).</strong> Pozwala wczytać z dysku lub telefonu własną listę słów,
+                skrótów Q albo zdań.</li>
+            <li><strong>Swobodne nadawanie (dekoder na żywo).</strong> Tryb bez wzorca — nadajesz dowolny tekst kluczem,
+                a dekoder wyświetla na bieżąco ostatnie 20 znaków (jedną linię) z automatycznym wstawianiem odstępów
+                między wyrazami.</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2>3. Własne pliki (.txt / .csv) — zasady przygotowania</h2>
+        <ul>
+            <li><strong>Format zapisu.</strong> Wpisz wyrazy lub krótkie zdania po jednym w każdej linii (oddzielone
+                Enterem) albo oddzielone średnikiem <code>;</code>.</li>
+            <li><strong>Automatyczny podział długich zdań.</strong> Zdania dłuższe niż 20 znaków są automatycznie
+                dzielone na krótsze fragmenty (bez przecinania wyrazów), aby mieściły się w jednym wierszu na ekranie
+                telefonu.</li>
+            <li><strong>Polskie litery.</strong> Jeśli w pliku znajdują się znaki <code>Ą Ć Ę Ł Ń Ó Ś Ź Ż</code>,
+                program zapyta po wczytaniu, czy zamienić je na zwykłe litery łacińskie
+                (<code>A C E L N O S Z Z</code>), czy zachować polskie kody telegraficzne CW.</li>
+            <li><strong>Kropki i przecinki.</strong> Jeśli tekst zawiera kropki lub przecinki (<code>. ,</code>),
+                program zapyta, czy je usunąć przed ćwiczeniem, czy pozostawić do nadawania.</li>
+            <li><strong>Kolejność.</strong> Możesz wybrać podawanie pozycji <em>Losowo z pliku</em> lub <em>Po kolei z
+                    pliku</em> (z licznikiem postępu).</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>4. Przyciski sterujące i kontrola rytmu</h2>
+        <ul>
+            <li><span class="badge badge-ok">Następny</span> / <span class="badge badge-ok">Wyczyść</span> — losuje lub
+                pobiera kolejny znak, grupę albo zdanie (w trybie <em>Swobodnego nadawania</em> przycisk zmienia nazwę
+                na <strong>Wyczyść</strong> i zeruje ekran).</li>
+            <li><span class="badge">🔊 Odsłuchaj wzór</span> / <span class="badge badge-err">⏹ Zatrzymaj</span> —
+                odtwarza bieżący wzór (lub nadany tekst w trybie swobodnym) w aktualnym tempie WPM. Ponowne kliknięcie,
+                zmiana słowa lub dotknięcie klucza natychmiast przerywa odsłuch.</li>
+            <li><span class="badge">Powtórz bieżący</span> — zeruje aktualnie wpisane znaki (lub czyści ekran w trybie
+                swobodnego nadawania).</li>
+            <li><span class="badge">⛶ Pełny ekran</span> — ukrywa górny pasek, ustawienia oraz listy wyboru, zostawiając
+                na ekranie wyłącznie przyciski i dużą zieloną ramkę ze znakami (idealne na smartfon).</li>
+            <li><strong>Zasady zaliczania i błędy:</strong>
+                <ul>
+                    <li>Cyfra zero wyświetlana jest jako przekreślone <code>Ø</code>, aby łatwo odróżnić ją od litery
+                        <code>O</code>.
+                    </li>
+                    <li>Nierozpoznana kombinacja kropek i kresek oznaczana jest symbolem <code>¤</code> (dzięki czemu
+                        nie myli się z prawidłowym znakiem zapytania <code>?</code>).</li>
+                    <li>Odstępy między wyrazami w QSO i zdaniach oznaczone są symbolem <code>␣</code> i zaliczają się
+                        automatycznie.</li>
+                    <li>Przy błędzie lub zbyt długiej pauzie wyraz resetuje się od nowa, a program podpowiada prawidłowy
+                        kod CW pomylonego znaku.</li>
+                </ul>
+            </li>
+        </ul>
+        <div class="tip">
+            <strong>Wskazówka WPM i przerw:</strong> W <code>⚙ Ustawienia</code> możesz zwiększyć <em>Przerwę między
+                literami</em> (np. na <code>4.0x dit</code> — metoda Farnswortha) oraz ustawić limit maksymalnej pauzy w
+            wyrazie. Wszystkie ustawienia oraz Twój znak wywoławczy zapisują się automatycznie w przeglądarce.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>5. Tabela kodów CW obsługiwanych przez trener</h2>
+
+        <h3>Litery (A–Z)</h3>
+        <div class="morse-grid">
+            <div class="morse-item"><span class="morse-ch">A</span><span class="morse-code">.-</span></div>
+            <div class="morse-item"><span class="morse-ch">B</span><span class="morse-code">-...</span></div>
+            <div class="morse-item"><span class="morse-ch">C</span><span class="morse-code">-.-.</span></div>
+            <div class="morse-item"><span class="morse-ch">D</span><span class="morse-code">-..</span></div>
+            <div class="morse-item"><span class="morse-ch">E</span><span class="morse-code">.</span></div>
+            <div class="morse-item"><span class="morse-ch">F</span><span class="morse-code">..-.</span></div>
+            <div class="morse-item"><span class="morse-ch">G</span><span class="morse-code">--.</span></div>
+            <div class="morse-item"><span class="morse-ch">H</span><span class="morse-code">....</span></div>
+            <div class="morse-item"><span class="morse-ch">I</span><span class="morse-code">..</span></div>
+            <div class="morse-item"><span class="morse-ch">J</span><span class="morse-code">.---</span></div>
+            <div class="morse-item"><span class="morse-ch">K</span><span class="morse-code">-.-</span></div>
+            <div class="morse-item"><span class="morse-ch">L</span><span class="morse-code">.-..</span></div>
+            <div class="morse-item"><span class="morse-ch">M</span><span class="morse-code">--</span></div>
+            <div class="morse-item"><span class="morse-ch">N</span><span class="morse-code">-.</span></div>
+            <div class="morse-item"><span class="morse-ch">O</span><span class="morse-code">---</span></div>
+            <div class="morse-item"><span class="morse-ch">P</span><span class="morse-code">.--.</span></div>
+            <div class="morse-item"><span class="morse-ch">Q</span><span class="morse-code">--.-</span></div>
+            <div class="morse-item"><span class="morse-ch">R</span><span class="morse-code">.-.</span></div>
+            <div class="morse-item"><span class="morse-ch">S</span><span class="morse-code">...</span></div>
+            <div class="morse-item"><span class="morse-ch">T</span><span class="morse-code">-</span></div>
+            <div class="morse-item"><span class="morse-ch">U</span><span class="morse-code">..-</span></div>
+            <div class="morse-item"><span class="morse-ch">V</span><span class="morse-code">...-</span></div>
+            <div class="morse-item"><span class="morse-ch">W</span><span class="morse-code">.--</span></div>
+            <div class="morse-item"><span class="morse-ch">X</span><span class="morse-code">-..-</span></div>
+            <div class="morse-item"><span class="morse-ch">Y</span><span class="morse-code">-.--</span></div>
+            <div class="morse-item"><span class="morse-ch">Z</span><span class="morse-code">--..</span></div>
+        </div>
+
+        <h3>Cyfry (Ø–9)</h3>
+        <div class="morse-grid">
+            <div class="morse-item"><span class="morse-ch">Ø</span><span class="morse-code">-----</span></div>
+            <div class="morse-item"><span class="morse-ch">1</span><span class="morse-code">.----</span></div>
+            <div class="morse-item"><span class="morse-ch">2</span><span class="morse-code">..---</span></div>
+            <div class="morse-item"><span class="morse-ch">3</span><span class="morse-code">...--</span></div>
+            <div class="morse-item"><span class="morse-ch">4</span><span class="morse-code">....-</span></div>
+            <div class="morse-item"><span class="morse-ch">5</span><span class="morse-code">.....</span></div>
+            <div class="morse-item"><span class="morse-ch">6</span><span class="morse-code">-....</span></div>
+            <div class="morse-item"><span class="morse-ch">7</span><span class="morse-code">--...</span></div>
+            <div class="morse-item"><span class="morse-ch">8</span><span class="morse-code">---..</span></div>
+            <div class="morse-item"><span class="morse-ch">9</span><span class="morse-code">----.</span></div>
+        </div>
+
+        <h3>Polskie znaki diakrytyczne</h3>
+        <div class="morse-grid">
+            <div class="morse-item"><span class="morse-ch">Ą</span><span class="morse-code">.-.-</span></div>
+            <div class="morse-item"><span class="morse-ch">Ć</span><span class="morse-code">-.-..</span></div>
+            <div class="morse-item"><span class="morse-ch">Ę</span><span class="morse-code">..-..</span></div>
+            <div class="morse-item"><span class="morse-ch">Ł</span><span class="morse-code">.-..-</span></div>
+            <div class="morse-item"><span class="morse-ch">Ń</span><span class="morse-code">--.--</span></div>
+            <div class="morse-item"><span class="morse-ch">Ó</span><span class="morse-code">---.</span></div>
+            <div class="morse-item"><span class="morse-ch">Ś</span><span class="morse-code">...-...</span></div>
+            <div class="morse-item"><span class="morse-ch">Ź</span><span class="morse-code">--..-</span></div>
+            <div class="morse-item"><span class="morse-ch">Ż</span><span class="morse-code">--..-.</span></div>
+        </div>
+
+        <h3>Interpunkcja i znaki specjalne (prosigns)</h3>
+        <div class="morse-grid">
+            <div class="morse-item"><span class="morse-ch">.</span><span class="morse-code">.-.-.-</span></div>
+            <div class="morse-item"><span class="morse-ch">,</span><span class="morse-code">--..--</span></div>
+            <div class="morse-item"><span class="morse-ch">?</span><span class="morse-code">..--..</span></div>
+            <div class="morse-item"><span class="morse-ch">/</span><span class="morse-code">-..-.</span></div>
+            <div class="morse-item"><span class="morse-ch">=</span><span class="morse-code">-...-</span></div>
+            <div class="morse-item"><span class="morse-ch">-</span><span class="morse-code">-....-</span></div>
+            <div class="morse-item"><span class="morse-ch">&lt;AR&gt;</span><span class="morse-code">.-.-.</span></div>
+            <div class="morse-item"><span class="morse-ch">&lt;KN&gt;</span><span class="morse-code">-.--.</span></div>
+            <div class="morse-item"><span class="morse-ch">&lt;SK&gt;</span><span class="morse-code">...-.-</span></div>
+            <div class="morse-item"><span class="morse-ch">&lt;KA&gt;</span><span class="morse-code">-.-.-</span></div>
+        </div>
+
+    </div>
+
 </body>
 
 </html>

@@ -165,6 +165,7 @@ button.active-mode {
     margin-top: .5rem;
     text-align: center;
     transition: background-color 0.25s ease, border-color 0.25s ease;
+    overflow-x: auto;
 }
 
 .flash-err {
@@ -179,13 +180,35 @@ button.active-mode {
 
 .lesson-grid {
     display: inline-grid;
-    grid-template-columns: repeat(6, 3.2rem);
-    gap: .5rem;
+    grid-template-columns: repeat(var(--cols, 6), minmax(2.2rem, auto));
+    gap: .55rem;
     justify-content: center;
     margin: .4rem 0;
-    font-family: ui-monospace, monospace;
-    font-size: 3.2rem;
+    font-family: 'Fira Code', 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    font-variant-numeric: slashed-zero;
+    font-size: clamp(1.9rem, 4.5vw, 3.2rem);
     font-weight: bold;
+}
+
+
+.lesson-grid.qso-mode {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .3rem .25rem;
+    font-size: clamp(1.35rem, 3.2vw, 2.1rem);
+}
+
+.qso-pair {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 1.15rem;
+}
+
+.cell-space {
+    color: #4b5563;
+    font-size: .75em;
 }
 
 .cell-target {
@@ -232,4 +255,68 @@ button.active-mode {
 
 .drawer.open {
     display: block;
+}
+
+body.focus-mode {
+    max-width: 100%;
+    width: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: .5rem;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+body.focus-mode .topbar,
+body.focus-mode #status,
+body.focus-mode #settings-drawer,
+body.focus-mode #lesson-legend,
+body.focus-mode fieldset>.row:first-of-type {
+    display: none !important;
+}
+
+body.focus-mode fieldset {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+body.focus-mode fieldset>.row:nth-of-type(2) {
+    justify-content: center;
+    gap: .4rem;
+    margin-bottom: .4rem !important;
+    flex-shrink: 0;
+}
+
+body.focus-mode fieldset>.row:nth-of-type(2) button {
+    padding: .35rem .6rem;
+    font-size: .82rem;
+}
+
+body.focus-mode .lesson-box {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    margin: 0;
+    padding: 1rem .6rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+body.focus-mode .lesson-grid {
+    font-size: clamp(2.2rem, 7vw, 4.2rem);
+}
+
+body.focus-mode .lesson-grid.qso-mode {
+    font-size: clamp(1.5rem, 4.5vw, 2.8rem);
 }
