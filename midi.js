@@ -25,9 +25,38 @@ function updateTiming() {
     threshInfo.textContent = `dit: ${ditMs} ms | kreska ≥ ${Math.round(ditMs * 2.0)} ms | litera po ${charMs} ms | limit pauzy: ${maxMs} ms`;
 }
 
-charGapSlider.addEventListener("input", () => { charGapMult = Number(charGapSlider.value); charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`; updateTiming(); });
-strictGapCheck.addEventListener("change", () => { maxGapRow.style.display = strictGapCheck.checked ? "flex" : "none"; if (!strictGapCheck.checked) clearTimeout(lessonGapTimer); });
-maxGapSlider.addEventListener("input", () => { maxGapMult = Number(maxGapSlider.value); maxGapOut.textContent = `${maxGapMult}x dit`; updateTiming(); });
+charGapSlider.addEventListener("input", () => {
+    charGapMult = Number(charGapSlider.value);
+    charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`;
+
+    // Zabarwienie suwaka na czerwono, jeśli odbiega od standardu (3.0)
+    if (charGapMult !== 3.0) {
+        charGapSlider.style.accentColor = "#ff5252";
+    } else {
+        charGapSlider.style.accentColor = ""; // Domyślny kolor
+    }
+
+    updateTiming();
+});
+
+strictGapCheck.addEventListener("change", () => {
+    maxGapRow.style.display = strictGapCheck.checked ? "flex" : "none";
+    if (!strictGapCheck.checked) clearTimeout(lessonGapTimer);
+});
+
+maxGapSlider.addEventListener("input", () => {
+    maxGapMult = Number(maxGapSlider.value);
+    maxGapOut.textContent = `${maxGapMult}x dit`;
+
+    // Zabarwienie suwaka na czerwono, jeśli odbiega od standardu (7)
+    if (maxGapMult !== 7) {
+        maxGapSlider.style.accentColor = "#ff5252";
+    } else {
+        maxGapSlider.style.accentColor = ""; // Domyślny kolor
+    }
+
+    updateTiming();
+});
 
 function sendDongleWpm(wpm) {
     txWpm = wpm; wpmOut.textContent = `${wpm} WPM`; quickWpmBadge.textContent = `${wpm} WPM`;
@@ -65,7 +94,6 @@ function commitChar() {
     checkLessonLetter(letter);
 }
 
-
 let lastKeyUpAt = 0;
 
 function onKeyDown() {
@@ -88,7 +116,6 @@ function onKeyUp() {
     symbolBuf += (dur >= ditMs * 2.0) ? "-" : ".";
     charTimer = setTimeout(commitChar, ditMs * charGapMult);
 }
-
 
 function handleMidiMessage(ev) {
     const [status, d1, d2] = ev.data, cmd = status & 0xF0, ch = (status & 0x0F) + 1;

@@ -173,6 +173,11 @@ button.active-mode {
     border-color: #ff5252 !important;
 }
 
+.flash-err-soft {
+    background-color: #3a2410 !important;
+    border-color: #f5a623 !important;
+}
+
 .flash-ok {
     background-color: #0e3d29 !important;
     border-color: #00e676 !important;

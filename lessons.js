@@ -17,6 +17,7 @@ const kochScope = document.getElementById("koch-scope");
 
 let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, isPlayingDemo = false, demoAbort = false;
 let customWords = new Array(), customWordIdx = 0;
+let softErrorTimer = null; // Dodane dla spójności
 
 function getMyCall() {
     const clean = (myCallInput ? myCallInput.value : "SQ1KSM").trim().toUpperCase().replace(/[^A-Z0-9/]/g, "");
@@ -35,6 +36,7 @@ function tokenizeWord(str) {
     }
     return tokens;
 }
+
 function splitLongPhrase(phrase, maxLen = 20) {
     if (phrase.length <= maxLen) return new Array(phrase);
     const words = phrase.split(" ");
@@ -187,7 +189,7 @@ function generateLessonWord() {
 }
 
 function flashBox(cls) {
-    lessonBoxEl.classList.remove("flash-err", "flash-ok");
+    lessonBoxEl.classList.remove("flash-err", "flash-ok", "flash-err-soft");
     void lessonBoxEl.offsetWidth;
     lessonBoxEl.classList.add(cls);
     setTimeout(() => lessonBoxEl.classList.remove(cls), 350);
@@ -252,10 +254,14 @@ function renderLesson() {
             lessonGridEl.appendChild(bot);
         }
     }
-    lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount}`;
+    const total = passedCount + errorCount;
+    const percent = total === 0 ? 0 : Math.round((passedCount / total) * 100);
+    lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${percent}%`;
 }
+
 function triggerLessonFail(msg) {
     clearTimeout(lessonGapTimer);
+    if (typeof playFeedback === "function") playFeedback(false); // Dźwięk błędu
     errorCount++; flashBox("flash-err");
     lessonMsgEl.style.color = "#ff5252"; lessonMsgEl.textContent = msg;
     typedWord = ""; symbolBuf = ""; renderLesson();
@@ -271,44 +277,117 @@ function stopDemoWord() {
 
 function nextLessonWord() {
     stopDemoWord(); clearTimeout(lessonGapTimer);
+    lessonMsgEl.style.color = "";
     targetWord = generateLessonWord(); typedWord = ""; symbolBuf = "";
     renderLesson();
 }
 
 function checkLessonLetter(letter) {
+    // 1. Tryb swobodny (free)
     if (lessonType.value === "free") {
         typedWord += letter;
-        if (typedWord.length > 20) {
-            typedWord = typedWord.slice(-20);
-        }
+        if (typedWord.length > 20) typedWord = typedWord.slice(-20);
         lessonMsgEl.textContent = "";
         renderLesson();
         return;
     }
 
     const targetTokens = tokenizeWord(targetWord);
-    let idx = tokenizeWord(typedWord).length;
-    if (idx >= targetTokens.length) return;
-    if (targetTokens[idx] === " ") { typedWord += " "; idx++; }
+    let typedTokens = tokenizeWord(typedWord);
+    let idx = typedTokens.length;
 
+    // 2. TWARDA BLOKADA: jeśli próbujesz wpisać więcej znaków niż jest w wyrazie
+    if (idx >= targetTokens.length) {
+        triggerLessonFail("Przekroczono długość wyrazu — cały wyraz od nowa!");
+        return;
+    }
+
+    // Automatyczne wstawienie spacji, jeśli oczekiwana jest spacja
+    if (targetTokens[idx] === " ") {
+        typedWord += " ";
+        idx++;
+    }
+
+    // Dopisujemy znak
     typedWord += letter;
-    if (letter !== targetTokens[idx]) {
+    const soft = softErrorCheck && softErrorCheck.checked;
+
+    // Tryb ostry (natychmiastowy błąd)
+    if (!soft && letter !== targetTokens[idx]) {
         const expected = targetTokens[idx];
         const hint = REV_MORSE[expected] ? ` (${fmtChar(expected)} to ${REV_MORSE[expected]})` : "";
         triggerLessonFail(`Błąd ("${fmtChar(letter)}" zamiast "${fmtChar(expected)}")${hint} — od nowa!`);
         return;
     }
 
-    lessonMsgEl.textContent = ""; renderLesson();
+    // Renderowanie na bieżąco (tutaj już mamy pewność, że długość jest OK)
+    lessonMsgEl.textContent = "";
+    lessonMsgEl.style.color = "";
+    renderLesson();
+
+    typedTokens = tokenizeWord(typedWord);
+
+    // 3. Sprawdzenie, czy wpisany fragment jest poprawny
+    let isCurrentWordCorrect = true;
+    let lastSpace = -1;
+    for (let i = typedTokens.length - 1; i >= 0; i--) {
+        if (typedTokens[i] === " ") { lastSpace = i; break; }
+    }
+    const currentWordStart = lastSpace + 1;
+
+    for (let i = currentWordStart; i < typedTokens.length; i++) {
+        if (typedTokens[i] !== targetTokens[i]) {
+            isCurrentWordCorrect = false;
+            break;
+        }
+    }
+
+    // 4. Reakcja
     if (typedWord === targetWord) {
-        clearTimeout(lessonGapTimer); passedCount++; flashBox("flash-ok");
+        // Sukces!
+        clearTimeout(lessonGapTimer);
+        if (typeof playFeedback === "function") playFeedback(true); // Dźwięk sukcesu
+        passedCount++; flashBox("flash-ok");
         lessonMsgEl.style.color = "#00e676"; lessonMsgEl.textContent = "Zaliczone!";
         nextLessonWord();
-    } else if (strictGapCheck.checked) {
+        return;
+    }
+
+    // Jeśli wpisano spację LUB wyraz jest już pełnej długości
+    const isWordOrPhraseEnd = (lastSpace !== -1 && lastSpace === typedTokens.length - 1) || (typedTokens.length === targetTokens.length);
+
+    if (!isCurrentWordCorrect) {
+        // Wykryto błąd na końcu słowa – czekamy na pauzę międzywyrazową
+        clearTimeout(lessonGapTimer);
+        if (soft) {
+            lessonGapTimer = setTimeout(() => {
+                // Zbieranie błędów z tego słowa do wyświetlenia (maksymalnie 3)
+                const diffs = [];
+                for (let i = currentWordStart; i < typedTokens.length; i++) {
+                    if (typedTokens[i] !== targetTokens[i]) {
+                        diffs.push(`"${fmtChar(typedTokens[i])}" zamiast "${fmtChar(targetTokens[i])}"`);
+                    }
+                }
+                let diffStr = diffs.slice(0, 3).join(", ");
+                if (diffs.length > 3) {
+                    diffStr += ", ...";
+                }
+                triggerLessonFail(`Błędy: ${diffStr} — cały wyraz od nowa!`);
+            }, ditMs * maxGapMult);
+        } else {
+            triggerLessonFail(`Błąd — od nowa!`);
+        }
+        return;
+    }
+
+    // 5. Uzbrojenie timera na wypadek zbyt długiej przerwy (jeśli wybrano)
+    if (strictGapCheck.checked) {
         clearTimeout(lessonGapTimer);
         const allowedMult = targetTokens[idx + 1] === " " ? Math.max(maxGapMult, 14) : maxGapMult;
         lessonGapTimer = setTimeout(() => {
-            if (typedWord.length > 0 && typedWord !== targetWord) triggerLessonFail("Za długa przerwa — od nowa!");
+            if (typedWord.length > 0 && typedWord !== targetWord) {
+                triggerLessonFail("Za długa przerwa — od nowa!");
+            }
         }, ditMs * allowedMult);
     }
 }
@@ -356,6 +435,11 @@ fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.text
 if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 document.getElementById("lesson-next-btn").addEventListener("click", () => { lessonMsgEl.textContent = ""; nextLessonWord(); });
-document.getElementById("lesson-reset-btn").addEventListener("click", () => { stopDemoWord(); clearTimeout(lessonGapTimer); typedWord = ""; symbolBuf = ""; lessonMsgEl.textContent = ""; renderLesson(); });
+document.getElementById("lesson-reset-btn").addEventListener("click", () => {
+    stopDemoWord(); clearTimeout(lessonGapTimer);
+    lessonMsgEl.style.color = "";
+    typedWord = ""; symbolBuf = ""; lessonMsgEl.textContent = "";
+    renderLesson();
+});
 if (playDemoBtn) playDemoBtn.addEventListener("click", playDemoWord);
 syncFreeModeButtons();

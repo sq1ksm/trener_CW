@@ -141,6 +141,11 @@
             font-size: .92rem;
         }
 
+        .warning {
+            color: #ff5252;
+            font-weight: bold;
+        }
+
         button {
             background: #00d1b2;
             color: #000;
@@ -206,6 +211,7 @@
                 między wyrazami.</li>
         </ul>
     </div>
+
     <div class="card">
         <h2>3. Własne pliki (.txt / .csv) — zasady przygotowania</h2>
         <ul>
@@ -225,7 +231,7 @@
     </div>
 
     <div class="card">
-        <h2>4. Przyciski sterujące i kontrola rytmu</h2>
+        <h2>4. Przyciski sterujące, kontrola rytmu i tryby błędów</h2>
         <ul>
             <li><span class="badge badge-ok">Następny</span> / <span class="badge badge-ok">Wyczyść</span> — losuje lub
                 pobiera kolejny znak, grupę albo zdanie (w trybie <em>Swobodnego nadawania</em> przycisk zmienia nazwę
@@ -237,20 +243,55 @@
                 swobodnego nadawania).</li>
             <li><span class="badge">⛶ Pełny ekran</span> — ukrywa górny pasek, ustawienia oraz listy wyboru, zostawiając
                 na ekranie wyłącznie przyciski i dużą zieloną ramkę ze znakami (idealne na smartfon).</li>
-            <li><strong>Zasady zaliczania i błędy:</strong>
-                <ul>
-                    <li>Cyfra zero wyświetlana jest jako przekreślone <code>Ø</code>, aby łatwo odróżnić ją od litery
-                        <code>O</code>.
-                    </li>
-                    <li>Nierozpoznana kombinacja kropek i kresek oznaczana jest symbolem <code>¤</code> (dzięki czemu
-                        nie myli się z prawidłowym znakiem zapytania <code>?</code>).</li>
-                    <li>Odstępy między wyrazami w QSO i zdaniach oznaczone są symbolem <code>␣</code> i zaliczają się
-                        automatycznie.</li>
-                    <li>Przy błędzie lub zbyt długiej pauzie wyraz resetuje się od nowa, a program podpowiada prawidłowy
-                        kod CW pomylonego znaku.</li>
-                </ul>
-            </li>
         </ul>
+
+        <h3>Standardowe wartości na suwakach</h3>
+        <p>W zakładce <code>⚙ Ustawienia</code> suwaki <strong>Przerwa między literami</strong> oraz <strong>Maks.
+                przerwa w wyrazie</strong> mają wartości domyślne, które odpowiadają standardom radiowym i metody
+            Farnswortha. Jeśli tylko przesuniesz je poza ten standard (w górę lub w dół), <span class="warning">suwak
+                zabarwi się na czerwono</span>, dając Ci sygnał, że ćwiczysz w niestandardowych warunkach:</p>
+        <ul>
+            <li><strong>Przerwa między literami:</strong> Standard to <code>3.0x dit</code>. Zwiększanie tej wartości
+                (np. do <code>4.0x</code>) pomaga w nauce (tzw. metoda Farnswortha) – litery są grane szybciej, ale
+                odstępy między nimi są większe.</li>
+            <li><strong>Maks. przerwa w wyrazie:</strong> Standard radiowy to <code>7x dit</code>. Zwiększanie limitu
+                (np. do <code>10x</code> lub więcej) sprawia, że program jest bardziej wyrozumiały dla wolniejszego
+                wystukiwania znaków.</li>
+        </ul>
+
+        <h3>Tryby reagowania na błędy</h3>
+        <p>W zakładce <code>⚙ Ustawienia</code> w sekcji „Tempo WPM, Przerwy i Kontrola Rytmu" znajdziesz pole
+            <strong>„Łagodny tryb błędów"</strong>:
+        </p>
+        <ul>
+            <li><strong>Tryb łagodny (domyślnie włączony):</strong> Jeśli pomylisz się w trakcie nadawania, program
+                <em>nie przerywa</em> od razu. Pozwala Ci dokończyć nadawanie wyrazu (lub dojść do najbliższej spacji).
+                Dopiero po zakończeniu słowa i wykryciu pauzy międzywyrazowej system weryfikuje poprawność i pokazuje
+                listę błędów (np. <em>Błędy: "T" zamiast "W", "T" zamiast "2", ...</em>) — wtedy wyraz resetuje się
+                od nowa. Dzięki temu ćwiczysz płynność i nawyk nieprzerywania kluczowania przy pomyłce.
+            </li>
+            <li><strong>Tryb ostry (po odznaczeniu):</strong> Klasyczne zachowanie — każdy błędny znak natychmiast
+                zatrzymuje ćwiczenie, wyświetla błąd i czyści wpisany tekst, każąc zacząć od nowa.</li>
+        </ul>
+        <p>Jeśli nadany tekst przekroczy długość wyrazu, system natychmiast przerywa i resetuje wyraz (aby uniknąć
+            zawieszenia i zbierania bzdurnych znaków). Komunikaty o błędach są maksymalnie skracane (pokazują 2 błędy,
+            a przy większej liczbie kończą się wielokropkiem).</p>
+        <p>Na dole ekranu znajduje się licznik: <code>Zaliczone: X | Błędy: Y | Skuteczność: Z%</code> — procent
+            obliczany jest jako stosunek udanych prób do wszystkich podjętych.</p>
+
+        <h3>Zasady zaliczania i oznaczenia ekranu</h3>
+        <ul>
+            <li>Cyfra zero wyświetlana jest jako przekreślone <code>Ø</code>, aby łatwo odróżnić ją od litery
+                <code>O</code>.
+            </li>
+            <li>Nierozpoznana kombinacja kropek i kresek oznaczana jest symbolem <code>¤</code> (dzięki czemu
+                nie myli się z prawidłowym znakiem zapytania <code>?</code>).</li>
+            <li>Odstępy między wyrazami w QSO i zdaniach oznaczone są symbolem <code>␣</code> i zaliczają się
+                automatycznie.</li>
+            <li>Przy błędzie lub zbyt długiej pauzie wyraz resetuje się od nowa, a program podpowiada prawidłowy
+                kod CW pomylonego znaku.</li>
+        </ul>
+
         <div class="tip">
             <strong>Wskazówka WPM i przerw:</strong> W <code>⚙ Ustawienia</code> możesz zwiększyć <em>Przerwę między
                 literami</em> (np. na <code>4.0x dit</code> — metoda Farnswortha) oraz ustawić limit maksymalnej pauzy w
@@ -323,9 +364,20 @@
             <div class="morse-item"><span class="morse-ch">.</span><span class="morse-code">.-.-.-</span></div>
             <div class="morse-item"><span class="morse-ch">,</span><span class="morse-code">--..--</span></div>
             <div class="morse-item"><span class="morse-ch">?</span><span class="morse-code">..--..</span></div>
+            <div class="morse-item"><span class="morse-ch">'</span><span class="morse-code">.----.</span></div>
+            <div class="morse-item"><span class="morse-ch">!</span><span class="morse-code">-.-.--</span></div>
             <div class="morse-item"><span class="morse-ch">/</span><span class="morse-code">-..-.</span></div>
+            <div class="morse-item"><span class="morse-ch">(</span><span class="morse-code">-.--.</span></div>
+            <div class="morse-item"><span class="morse-ch">)</span><span class="morse-code">-.--.-</span></div>
+            <div class="morse-item"><span class="morse-ch">&amp;</span><span class="morse-code">.-...</span></div>
+            <div class="morse-item"><span class="morse-ch">:</span><span class="morse-code">---...</span></div>
+            <div class="morse-item"><span class="morse-ch">;</span><span class="morse-code">-.-.-.</span></div>
             <div class="morse-item"><span class="morse-ch">=</span><span class="morse-code">-...-</span></div>
             <div class="morse-item"><span class="morse-ch">-</span><span class="morse-code">-....-</span></div>
+            <div class="morse-item"><span class="morse-ch">_</span><span class="morse-code">..--.-</span></div>
+            <div class="morse-item"><span class="morse-ch">"</span><span class="morse-code">.-..-.</span></div>
+            <div class="morse-item"><span class="morse-ch">$</span><span class="morse-code">...-..-</span></div>
+            <div class="morse-item"><span class="morse-ch">@</span><span class="morse-code">.--.-.</span></div>
             <div class="morse-item"><span class="morse-ch">&lt;AR&gt;</span><span class="morse-code">.-.-.</span></div>
             <div class="morse-item"><span class="morse-ch">&lt;KN&gt;</span><span class="morse-code">-.--.</span></div>
             <div class="morse-item"><span class="morse-ch">&lt;SK&gt;</span><span class="morse-code">...-.-</span></div>

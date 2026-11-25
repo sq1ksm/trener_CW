@@ -81,8 +81,38 @@ let symbolBuf = "", lessonGapTimer = null;
 
 const wpmSlider = document.getElementById("wpm-slider");
 const strictGapCheck = document.getElementById("strict-gap-check");
+const softErrorCheck = document.getElementById("soft-error-check");
 const volSlider = document.getElementById("vol-slider"), volOut = document.getElementById("vol-out");
 const freqSlider = document.getElementById("freq-slider"), freqOut = document.getElementById("freq-out");
 
 volSlider.addEventListener("input", () => { volume = Number(volSlider.value) / 100; volOut.textContent = `${volSlider.value}%`; initAudio(); });
 freqSlider.addEventListener("input", () => { toneFreq = Number(freqSlider.value); freqOut.textContent = `${toneFreq} Hz`; if (osc) osc.frequency.value = toneFreq; });
+const soundFeedbackCheck = document.getElementById("sound-feedback-check");
+
+// Krótkie dźwięki feedbacku (niezależne od głównego tonu CW)
+function playFeedback(isSuccess) {
+    if (!soundFeedbackCheck || !soundFeedbackCheck.checked) return;
+    if (!audioCtx) return;
+
+    // Głośność to 50% głośności suwaka (np. jeśli suwak na 50%, dźwięk ma 25%)
+    const volumeLevel = volume * 1.0; // Możesz dostosować ten współczynnik, aby zmienić głośność feedbacku
+    const duration = isSuccess ? 0.1 : 0.25;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    // Sukces: wysoki, czysty dźwięk (C6). Błąd: niski, buczący (G3)
+    osc.type = isSuccess ? "sine" : "triangle";
+    osc.frequency.setValueAtTime(isSuccess ? 1046.50 : 196.00, audioCtx.currentTime);
+
+    // Obwiednia (fade in/out), aby uniknąć trzasków
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(volumeLevel, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+}

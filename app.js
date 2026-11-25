@@ -8,6 +8,8 @@ function saveSettings() {
         charGap: charGapSlider.value,
         maxGap: maxGapSlider.value,
         strictGap: strictGapCheck.checked,
+        softError: softErrorCheck ? softErrorCheck.checked : true,
+        soundFeedback: soundFeedbackCheck ? soundFeedbackCheck.checked : false,
         prog: activeBtn ? activeBtn.dataset.prog : "7",
         lessonType: lessonType.value,
         lessonLen: lessonLen.value,
@@ -29,6 +31,8 @@ function loadSettings() {
         if (p.charGap) { charGapSlider.value = p.charGap; charGapMult = Number(p.charGap); charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`; }
         if (p.maxGap) { maxGapSlider.value = p.maxGap; maxGapMult = Number(p.maxGap); maxGapOut.textContent = `${maxGapMult}x dit`; }
         if (typeof p.strictGap === "boolean") { strictGapCheck.checked = p.strictGap; maxGapRow.style.display = p.strictGap ? "flex" : "none"; }
+        if (typeof p.softError === "boolean" && softErrorCheck) { softErrorCheck.checked = p.softError; }
+        if (typeof p.soundFeedback === "boolean" && soundFeedbackCheck) { soundFeedbackCheck.checked = p.soundFeedback; }
         if (p.lessonLen) lessonLen.value = p.lessonLen;
         if (p.fileOrder) fileOrder.value = p.fileOrder;
         if (p.kochStage && kochStage) kochStage.value = p.kochStage;
@@ -39,6 +43,11 @@ function loadSettings() {
                 b.classList.toggle("active-mode", b.dataset.prog === String(p.prog));
             });
         }
+
+        // Wymuszenie aktualizacji wyglądu suwaków (kolorów) po wczytaniu z pamięci
+        if (charGapSlider) charGapSlider.dispatchEvent(new Event('input'));
+        if (maxGapSlider) maxGapSlider.dispatchEvent(new Event('input'));
+
         updateTiming();
     } catch (e) { }
 }
@@ -52,9 +61,10 @@ if (myCallInput) {
     });
 }
 
-[wpmSlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck, lessonType, lessonLen, fileOrder, kochStage, kochScope].forEach(el => {
-    if (el) el.addEventListener("change", saveSettings);
-});
+[wpmSlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck,
+    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, fileOrder, kochStage, kochScope].forEach(el => {
+        if (el) el.addEventListener("change", saveSettings);
+    });
 document.querySelectorAll(".mode-btn").forEach(btn => btn.addEventListener("click", saveSettings));
 
 loadSettings();
