@@ -15,42 +15,52 @@ function saveSettings() {
         lessonLen: lessonLen.value,
         fileOrder: fileOrder.value,
         kochStage: kochStage ? kochStage.value : "0",
-        kochScope: kochScope ? kochScope.value : "only"
+        kochScope: kochScope ? kochScope.value : "only",
+        noteDit: noteDitEl ? noteDitEl.value : "1",
+        noteDah: noteDahEl ? noteDahEl.value : "2",
+        anyNote: anyNoteEl ? anyNoteEl.checked : false
     }));
 }
 
 function loadSettings() {
     const raw = localStorage.getItem("cwTrainerPrefs");
-    if (!raw) return;
-    try {
-        const p = JSON.parse(raw);
-        if (p.myCall && myCallInput) myCallInput.value = p.myCall;
-        if (p.wpm) { wpmSlider.value = p.wpm; sendDongleWpm(Number(p.wpm)); }
-        if (p.vol) { volSlider.value = p.vol; volume = Number(p.vol) / 100; volOut.textContent = `${p.vol}%`; }
-        if (p.freq) { freqSlider.value = p.freq; toneFreq = Number(p.freq); freqOut.textContent = `${p.freq} Hz`; }
-        if (p.charGap) { charGapSlider.value = p.charGap; charGapMult = Number(p.charGap); charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`; }
-        if (p.maxGap) { maxGapSlider.value = p.maxGap; maxGapMult = Number(p.maxGap); maxGapOut.textContent = `${maxGapMult}x dit`; }
-        if (typeof p.strictGap === "boolean") { strictGapCheck.checked = p.strictGap; maxGapRow.style.display = p.strictGap ? "flex" : "none"; }
-        if (typeof p.softError === "boolean" && softErrorCheck) { softErrorCheck.checked = p.softError; }
-        if (typeof p.soundFeedback === "boolean" && soundFeedbackCheck) { soundFeedbackCheck.checked = p.soundFeedback; }
-        if (p.lessonLen) lessonLen.value = p.lessonLen;
-        if (p.fileOrder) fileOrder.value = p.fileOrder;
-        if (p.kochStage && kochStage) kochStage.value = p.kochStage;
-        if (p.kochScope && kochScope) kochScope.value = p.kochScope;
-        if (p.lessonType) lessonType.value = p.lessonType;
-        if (p.prog) {
-            document.querySelectorAll(".mode-btn").forEach(b => {
-                b.classList.toggle("active-mode", b.dataset.prog === String(p.prog));
-            });
-        }
+    if (raw) {
+        try {
+            const p = JSON.parse(raw);
+            if (p.myCall && myCallInput) myCallInput.value = p.myCall;
+            if (p.wpm) { wpmSlider.value = p.wpm; sendDongleWpm(Number(p.wpm)); }
+            if (p.vol) { volSlider.value = p.vol; volume = Number(p.vol) / 100; volOut.textContent = `${p.vol}%`; }
+            if (p.freq) { freqSlider.value = p.freq; toneFreq = Number(p.freq); freqOut.textContent = `${p.freq} Hz`; }
+            if (p.charGap) { charGapSlider.value = p.charGap; charGapMult = Number(p.charGap); charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`; }
+            if (p.maxGap) { maxGapSlider.value = p.maxGap; maxGapMult = Number(p.maxGap); maxGapOut.textContent = `${maxGapMult}x dit`; }
+            if (typeof p.strictGap === "boolean") { strictGapCheck.checked = p.strictGap; maxGapRow.style.display = p.strictGap ? "flex" : "none"; }
+            if (typeof p.softError === "boolean" && softErrorCheck) { softErrorCheck.checked = p.softError; }
+            if (typeof p.soundFeedback === "boolean" && soundFeedbackCheck) { soundFeedbackCheck.checked = p.soundFeedback; }
+            if (p.lessonLen) lessonLen.value = p.lessonLen;
+            if (p.fileOrder) fileOrder.value = p.fileOrder;
+            if (p.kochStage && kochStage) kochStage.value = p.kochStage;
+            if (p.kochScope && kochScope) kochScope.value = p.kochScope;
+            if (p.lessonType) lessonType.value = p.lessonType;
+            if (p.prog) {
+                document.querySelectorAll(".mode-btn").forEach(b => {
+                    b.classList.toggle("active-mode", b.dataset.prog === String(p.prog));
+                });
+            }
+            if (p.noteDit !== undefined && noteDitEl) noteDitEl.value = p.noteDit;
+            if (p.noteDah !== undefined && noteDahEl) noteDahEl.value = p.noteDah;
+            if (typeof p.anyNote === "boolean" && anyNoteEl) anyNoteEl.checked = p.anyNote;
+        } catch (e) { }
+    }
 
-        // Wymuszenie aktualizacji wyglądu suwaków (kolorów) po wczytaniu z pamięci
-        if (charGapSlider) charGapSlider.dispatchEvent(new Event('input'));
-        if (maxGapSlider) maxGapSlider.dispatchEvent(new Event('input'));
+    // Wymuszenie aktualizacji wyglądu suwaków (kolorów) po starcie / wczytaniu z pamięci
+    if (freqSlider) freqSlider.dispatchEvent(new Event('input'));
+    if (charGapSlider) charGapSlider.dispatchEvent(new Event('input'));
+    if (maxGapSlider) maxGapSlider.dispatchEvent(new Event('input'));
 
-        updateTiming();
-    } catch (e) { }
+    updateTiming();
 }
+
+
 
 if (myCallInput) {
     myCallInput.addEventListener("input", () => {
@@ -62,13 +72,28 @@ if (myCallInput) {
 }
 
 [wpmSlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck,
-    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, fileOrder, kochStage, kochScope].forEach(el => {
+    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, fileOrder, kochStage, kochScope,
+    noteDitEl, noteDahEl, anyNoteEl].forEach(el => {
         if (el) el.addEventListener("change", saveSettings);
     });
+
 document.querySelectorAll(".mode-btn").forEach(btn => btn.addEventListener("click", saveSettings));
 
 loadSettings();
+
+const noteSelectorsEl = document.getElementById("note-selectors");
+function updateNoteSelectorsVisibility() {
+    if (noteSelectorsEl && anyNoteEl) {
+        noteSelectorsEl.style.display = anyNoteEl.checked ? "none" : "inline-flex";
+    }
+}
+if (anyNoteEl) {
+    anyNoteEl.addEventListener("change", updateNoteSelectorsVisibility);
+    updateNoteSelectorsVisibility();
+}
+
 updateLessonControlsUI();
+
 nextLessonWord();
 
 inSel.addEventListener("change", bindPorts);

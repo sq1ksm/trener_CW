@@ -2,7 +2,7 @@ let midiAccess = null, currentIn = null, currentOut = null;
 let keyDownAt = 0, isDown = false, charTimer = null;
 
 const statusEl = document.getElementById("status"), inSel = document.getElementById("midi-in"), outSel = document.getElementById("midi-out");
-const chSel = document.getElementById("midi-ch"), noteNumEl = document.getElementById("note-num"), anyNoteEl = document.getElementById("any-note");
+const chSel = document.getElementById("midi-ch"), noteDitEl = document.getElementById("note-dit"), noteDahEl = document.getElementById("note-dah"), anyNoteEl = document.getElementById("any-note");
 const wpmOut = document.getElementById("wpm-out"), quickWpmBadge = document.getElementById("quick-wpm-badge"), syncCheck = document.getElementById("sync-decoder");
 const charGapSlider = document.getElementById("char-gap-slider"), charGapOut = document.getElementById("char-gap-out");
 const maxGapRow = document.getElementById("max-gap-row"), maxGapSlider = document.getElementById("max-gap-slider"), maxGapOut = document.getElementById("max-gap-out");
@@ -117,13 +117,32 @@ function onKeyUp() {
     charTimer = setTimeout(commitChar, ditMs * charGapMult);
 }
 
+function isAcceptedNote(note) {
+    if (anyNoteEl && anyNoteEl.checked) return true;
+    const ditNote = noteDitEl ? Number(noteDitEl.value) : 1;
+    const dahNote = noteDahEl ? Number(noteDahEl.value) : 2;
+    return note === ditNote || note === dahNote;
+}
+
 function handleMidiMessage(ev) {
     const [status, d1, d2] = ev.data, cmd = status & 0xF0, ch = (status & 0x0F) + 1;
     if (chSel.value !== "all" && Number(chSel.value) !== ch) return;
-    if (cmd === 0x90 && d2 > 0) { if (!anyNoteEl.checked && d1 !== Number(noteNumEl.value)) return; addLog(`RX CH${ch} ON note=${d1} vel=${d2}`); onKeyDown(); }
-    else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) { if (!anyNoteEl.checked && d1 !== Number(noteNumEl.value)) return; addLog(`RX CH${ch} OFF note=${d1}`); onKeyUp(); }
-    else if (cmd === 0xB0) addLog(`RX CH${ch} CC#${d1} val=${d2}`, true);
+
+    if (cmd === 0x90 && d2 > 0) {
+        if (!isAcceptedNote(d1)) return;
+        addLog(`RX CH${ch} ON note=${d1} vel=${d2}`);
+        onKeyDown();
+    }
+    else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) {
+        if (!isAcceptedNote(d1)) return;
+        addLog(`RX CH${ch} OFF note=${d1}`);
+        onKeyUp();
+    }
+    else if (cmd === 0xB0) {
+        addLog(`RX CH${ch} CC#${d1} val=${d2}`, true);
+    }
 }
+
 
 function bindPorts() {
     if (currentIn) currentIn.onmidimessage = null;

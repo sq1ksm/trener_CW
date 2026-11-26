@@ -24,7 +24,7 @@ const settingsDrawer = document.getElementById("settings-drawer");
 document.getElementById("toggle-settings-btn").addEventListener("click", () => settingsDrawer.classList.toggle("open"));
 
 const unlockBtn = document.getElementById("unlock-audio-btn");
-let audioCtx = null, osc = null, gainNode = null, volume = 0.5, toneFreq = 650, audioUnlocked = false;
+let audioCtx = null, osc = null, gainNode = null, volume = 0.5, toneFreq = 700, audioUnlocked = false;
 let keepAliveOsc = null, keepAliveGain = null;
 
 function initAudio() {
@@ -86,7 +86,19 @@ const volSlider = document.getElementById("vol-slider"), volOut = document.getEl
 const freqSlider = document.getElementById("freq-slider"), freqOut = document.getElementById("freq-out");
 
 volSlider.addEventListener("input", () => { volume = Number(volSlider.value) / 100; volOut.textContent = `${volSlider.value}%`; initAudio(); });
-freqSlider.addEventListener("input", () => { toneFreq = Number(freqSlider.value); freqOut.textContent = `${toneFreq} Hz`; if (osc) osc.frequency.value = toneFreq; });
+freqSlider.addEventListener("input", () => {
+    toneFreq = Number(freqSlider.value);
+    freqOut.textContent = `${toneFreq} Hz`;
+    if (osc) osc.frequency.value = toneFreq;
+
+    let color = "#22c55e"; // zielony: standard Yaesu FT-817 / FT-450 (600 - 700 Hz)
+    if (toneFreq < 600) color = "#38bdf8";      // niebieski: niski, łagodny ton (< 600 Hz)
+    else if (toneFreq > 700) color = "#f59e0b"; // pomarańczowy: wysoki ton (> 700 Hz)
+
+    freqSlider.style.accentColor = color;
+    freqOut.style.color = color;
+});
+
 const soundFeedbackCheck = document.getElementById("sound-feedback-check");
 
 // Krótkie dźwięki feedbacku (niezależne od głównego tonu CW)

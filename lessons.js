@@ -1,4 +1,8 @@
 const myCallInput = document.getElementById("my-call-input");
+const myNameInput = document.getElementById("my-name-input");
+const myQthInput = document.getElementById("my-qth-input");
+const myLocatorInput = document.getElementById("my-locator-input");
+
 const lessonType = document.getElementById("lesson-type"), lessonLen = document.getElementById("lesson-len"), lessonLenWrap = document.getElementById("lesson-len-wrap");
 const fileControls = document.getElementById("file-controls"), fileUploadBtn = document.getElementById("file-upload-btn"), fileInput = document.getElementById("lesson-file-input");
 const fileOrder = document.getElementById("file-order"), fileInfo = document.getElementById("file-info"), lessonLegend = document.getElementById("lesson-legend");
@@ -22,6 +26,21 @@ let softErrorTimer = null; // Dodane dla spójności
 function getMyCall() {
     const clean = (myCallInput ? myCallInput.value : "SQ1KSM").trim().toUpperCase().replace(/[^A-Z0-9/]/g, "");
     return clean || "SQ1KSM";
+}
+
+function getMyName() {
+    const clean = (myNameInput ? myNameInput.value : "JAN").trim().toUpperCase().replace(/[^A-Z]/g, "");
+    return clean || "JAN";
+}
+
+function getMyQth() {
+    const clean = (myQthInput ? myQthInput.value : "WARSZAWA").trim().toUpperCase().replace(/[^A-Z]/g, "");
+    return clean || "WARSZAWA";
+}
+
+function getMyLocator() {
+    const clean = (myLocatorInput ? myLocatorInput.value : "JO72IP").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return clean || "JO72IP";
 }
 
 function tokenizeWord(str) {
@@ -143,13 +162,41 @@ function generateCallsign(len) {
 
 function generateQsoPhrase() {
     const me = getMyCall(), dx = generateCallsign(Math.random() < 0.35 ? 5 : 6);
+    const myName = getMyName(), myQth = getMyQth(), myLoc = getMyLocator();
     const rst = randItem(new Array("599", "579", "589", "559"));
     const nr = String(Math.floor(Math.random() * 199) + 1).padStart(3, "0");
+
+    // Baza imion, miast i lokatorów dla "drugiej strony" (DX)
+    const imionaDx = new Array("JAN", "ANNA", "PIOTR", "MARIA", "KRZYSZTOF", "TOMASZ", "AGNIESZKA", "MAREK");
+    const qthDx = new Array("WARSZAWA", "KRAKOW", "GDANSK", "WROCLAW", "POZNAN", "LODZ", "SZCZECIN", "BYDGOSZCZ", "LUBLIN", "KATOWICE");
+    const locDx = new Array("JO91", "KN09", "JO94", "JO81", "JO82", "JO91", "JO73", "JO93", "KO11", "JO90");
+
+    const dxName = randItem(imionaDx);
+    const dxQth = randItem(qthDx);
+    const dxLoc = randItem(locDx);
+
     const templates = new Array(
-        `CQ CQ DE ${me} ${me} K`, `CQ TEST ${me} ${me} TEST`, `CQ SOTA ${me}/P ${me}/P K`,
-        `CQ POTA ${me}/P ${me}/P K`, `${dx} DE ${me} ${me} <KN>`, `${dx} UR ${rst} ${rst} <KN>`,
-        `${dx} DE ${me} UR ${rst} ${rst} BK`, `${dx} TU ${rst} ${nr} ${me}`,
-        `R R TU 73 DE ${me} <AR> <SK>`, `${dx} GE TNX FER QSO 73 DE ${me} <AR>`
+        `CQ CQ DE ${me} ${me} K`,
+        `CQ TEST ${me} ${me} TEST`,
+        `CQ SOTA ${me}/P ${me}/P K`,
+        `CQ POTA ${me}/P ${me}/P K`,
+        `${dx} DE ${me} ${me} <KN>`,
+        `${dx} UR ${rst} ${rst} <KN>`,
+        `${dx} DE ${me} UR ${rst} ${rst} BK`,
+        `${dx} TU ${rst} ${nr} ${me}`,
+        `R R TU 73 DE ${me} <AR> <SK>`,
+        `${dx} GE TNX FER QSO 73 DE ${me} <AR>`,
+
+        // Twoje dane
+        `${dx} DE ${me} NAME ${myName} QTH ${myQth} <KN>`,
+        `NAME IS ${myName} ${myName} QTH IS ${myQth} ${myQth} <KN>`,
+        `QTH ${myQth} ${myQth} LOC ${myLoc} ${myLoc} <KN>`,
+
+        // Dane DX
+        `TNX ${dxName} QTH ${dxQth} 73 DE ${me} <AR>`,
+        `R R TU ${dxName} QTH ${dxQth} 73 DE ${me} <SK>`,
+        `R R ${dxQth} ${dxQth} LOC ${dxLoc} ${dxLoc} 73 <SK>`,
+        `QSL VIA BUREAU 73 DE ${me} <SK>`
     );
     return randItem(templates);
 }
