@@ -260,7 +260,10 @@ function renderLesson() {
                 lessonGridEl.appendChild(span);
             }
         }
-        lessonStatsEl.textContent = `Nadano znaków: ${tokens.filter(t => t !== " ").length}`;
+        const total = passedCount + errorCount;
+        const pct = total > 0 ? `${Math.round((passedCount / total) * 100)}%` : "—";
+        lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${pct}`;
+
         return;
     }
 
@@ -472,8 +475,20 @@ function syncFreeModeButtons() {
     const isFree = lessonType.value === "free";
     const nextBtn = document.getElementById("lesson-next-btn");
     const resetBtn = document.getElementById("lesson-reset-btn");
+    const statsResetBtn = document.getElementById("stats-reset-btn");
     if (nextBtn) nextBtn.textContent = isFree ? "Wyczyść" : "Następny";
     if (resetBtn) resetBtn.style.display = isFree ? "none" : "inline-block";
+    if (statsResetBtn) statsResetBtn.style.display = isFree ? "none" : "inline-block";
+}
+
+const statsResetBtn = document.getElementById("stats-reset-btn");
+if (statsResetBtn) {
+    statsResetBtn.addEventListener("click", () => {
+        passedCount = 0;
+        errorCount = 0;
+        lessonMsgEl.textContent = "";
+        renderLesson();
+    });
 }
 
 lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(); });
