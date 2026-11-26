@@ -433,7 +433,7 @@ function checkLessonLetter(letter) {
         const allowedMult = targetTokens[idx + 1] === " " ? Math.max(maxGapMult, 14) : maxGapMult;
         lessonGapTimer = setTimeout(() => {
             if (typedWord.length > 0 && typedWord !== targetWord) {
-                triggerLessonFail("Za długa przerwa — od nowa!");
+                triggerLessonFail("Spróbuj jeszcze raz!");
             }
         }, ditMs * allowedMult);
     }
