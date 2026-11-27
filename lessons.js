@@ -4,7 +4,8 @@ const myQthInput = document.getElementById("my-qth-input");
 const myLocatorInput = document.getElementById("my-locator-input");
 
 const lessonType = document.getElementById("lesson-type"), lessonLen = document.getElementById("lesson-len"), lessonLenWrap = document.getElementById("lesson-len-wrap");
-const fileControls = document.getElementById("file-controls"), fileUploadBtn = document.getElementById("file-upload-btn"), fileInput = document.getElementById("lesson-file-input");
+const callsignSuffixWrap = document.getElementById("callsign-suffix-wrap"), callsignSuffix = document.getElementById("callsign-suffix");
+const fileControls = document.getElementById("file-controls"), fileUploadBtn = document.getElementById("file-upload-btn"), filePasteBtn = document.getElementById("file-paste-btn"), fileInput = document.getElementById("lesson-file-input");
 const fileOrder = document.getElementById("file-order"), fileInfo = document.getElementById("file-info"), lessonLegend = document.getElementById("lesson-legend");
 const lessonBoxEl = document.getElementById("lesson-box"), lessonGridEl = document.getElementById("lesson-grid"), lessonMsgEl = document.getElementById("lesson-msg"), lessonStatsEl = document.getElementById("lesson-stats");
 const playDemoBtn = document.getElementById("lesson-play-btn");
@@ -166,6 +167,7 @@ function updateLessonControlsUI() {
     }
 
     lessonLenWrap.style.display = (isFile || isQso || isFree) ? "none" : "flex";
+    if (callsignSuffixWrap) callsignSuffixWrap.style.display = isCallsign ? "flex" : "none";
     fileControls.style.display = isFile ? "flex" : "none";
     if (kochControls) kochControls.style.display = isKoch ? "flex" : "none";
 
@@ -186,29 +188,65 @@ function updateLessonControlsUI() {
 }
 
 fileUploadBtn.addEventListener("click", () => fileInput.click());
+function loadCustomLessonText(content, sourceType) {
+    const convertPl = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(content) && confirm(
+        "W tekście wykryto polskie litery (Ą Ć Ę Ł Ń Ó Ś Ź Ż).\n\nOK — zamień na zwykłe litery (A C E L N O S Z Z)\nAnuluj — zachowaj polskie znaki CW"
+    );
+    const removePunct = /[.,]/.test(content) && confirm(
+        "W tekście wykryto kropki lub przecinki (. ,).\n\nOK — usuń kropki i przecinki z tekstu\nAnuluj — zachowaj kropki i przecinki CW"
+    );
+    const words = parseCustomFile(content, convertPl, removePunct);
+    if (!words.length) {
+        fileInfo.style.color = "#ff5252";
+        fileInfo.textContent = `Brak poprawnych słów CW w ${sourceType}!`;
+        fileInfo.title = fileInfo.textContent;
+        return;
+    }
+    customWords = words; customWordIdx = 0;
+    fileInfo.style.color = "#7fd1b9";
+    fileInfo.textContent = "";
+    fileInfo.title = fileInfo.textContent;
+    lessonMsgEl.textContent = "";
+    nextLessonWord();
+}
+
 fileInput.addEventListener("change", (e) => {
     const file = e.target.files.item(0);
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-        const content = ev.target.result;
-        const convertPl = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(content) && confirm(
-            "W pliku wykryto polskie litery (Ą Ć Ę Ł Ń Ó Ś Ź Ż).\n\nOK — zamień na zwykłe litery (A C E L N O S Z Z)\nAnuluj — zachowaj polskie znaki CW"
-        );
-        const removePunct = /[.,]/.test(content) && confirm(
-            "W pliku wykryto kropki lub przecinki (. ,).\n\nOK — usuń kropki i przecinki z tekstu\nAnuluj — zachowaj kropki i przecinki CW"
-        );
-        const words = parseCustomFile(content, convertPl, removePunct);
-        if (!words.length) { fileInfo.style.color = "#ff5252"; fileInfo.textContent = "Brak poprawnych słów CW w pliku!"; return; }
-        customWords = words; customWordIdx = 0;
-        const flags = new Array(convertPl ? "bez PL" : "", removePunct ? "bez . ," : "").filter(Boolean);
-        fileInfo.style.color = "#7fd1b9";
-        fileInfo.textContent = `${file.name} (${words.length} poz.${flags.length ? ", " + flags.join(", ") : ""})`;
-        lessonMsgEl.textContent = "";
-        nextLessonWord();
+    reader.onload = (ev) => loadCustomLessonText(ev.target.result, "pliku");
+    reader.onerror = () => {
+        const message = reader.error && reader.error.message ? reader.error.message : "nieznany błąd";
+        fileInfo.style.color = "#ff5252";
+        fileInfo.textContent = `Nie udało się odczytać pliku: ${message}`;
+        fileInfo.title = fileInfo.textContent;
     };
     reader.readAsText(file, "UTF-8");
     fileInput.value = "";
+});
+filePasteBtn.addEventListener("click", async () => {
+    if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+        fileInfo.style.color = "#ff5252";
+        fileInfo.textContent = "Schowek niedostępny w tej przeglądarce.";
+        fileInfo.title = fileInfo.textContent;
+        return;
+    }
+
+    try {
+        const content = await navigator.clipboard.readText();
+        if (!content.trim()) {
+            fileInfo.style.color = "#ff5252";
+            fileInfo.textContent = "Schowek jest pusty.";
+            fileInfo.title = fileInfo.textContent;
+            return;
+        }
+        loadCustomLessonText(content, "schowku");
+    } catch (error) {
+        fileInfo.style.color = "#ff5252";
+        const message = error && error.message ? error.message : String(error);
+        fileInfo.textContent = `Nie udało się odczytać schowka: ${message}`;
+        fileInfo.title = fileInfo.textContent;
+    }
 });
 function randChar(str) { return str[Math.floor(Math.random() * str.length)]; }
 function randItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -288,7 +326,14 @@ function generateLessonWord() {
     }
     if (mode === "koch") return generateKochWord(len);
     if (mode === "qso") return generateQsoPhrase();
-    if (mode === "callsign") return generateCallsign(len);
+    if (mode === "callsign") {
+        const callsign = generateCallsign(len);
+        if (callsignSuffix && callsignSuffix.value === "question") return `${callsign}?`;
+        const suffixes = new Array("P", "QRP", "MM");
+        return callsignSuffix && callsignSuffix.value === "random"
+            ? `${callsign}/${randItem(suffixes)}`
+            : callsign;
+    }
     if (mode === "letters") return Array.from({ length: len }, () => randChar(letters)).join("");
     return Array.from({ length: len }, () => randChar(all)).join("");
 }
@@ -751,6 +796,7 @@ if (statsResetBtn) {
 
 lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 lessonLen.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
+if (callsignSuffix) callsignSuffix.addEventListener("change", () => { lessonMsgEl.textContent = ""; nextLessonWord(); });
 fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.textContent = ""; nextLessonWord(); });
 if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });

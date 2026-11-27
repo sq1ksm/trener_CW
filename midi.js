@@ -173,6 +173,14 @@ function refreshPorts() {
     outputs.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; outSel.appendChild(o); });
     if (inputs.some(p => p.id === prevIn)) inSel.value = prevIn;
     if (outputs.some(p => p.id === prevOut)) outSel.value = prevOut;
-    statusEl.textContent = `Gotowy. Wykryto wejść: ${inputs.length}, wyjść: ${outputs.length}.`;
+
+    if (inputs.length === 0 && outputs.length === 0) {
+        statusEl.textContent = "Brak urządzeń MIDI (wejść: 0, wyjść: 0) — podłącz klucz / dongle USB.";
+        statusEl.style.color = "#f87171"; // czerwony
+    } else {
+        statusEl.textContent = `Gotowy. Wykryto wejść: ${inputs.length}, wyjść: ${outputs.length}.`;
+        statusEl.style.color = ""; // przywraca domyślny kolor z style.css (np. zielonkawy/szary)
+    }
+
     bindPorts();
 }

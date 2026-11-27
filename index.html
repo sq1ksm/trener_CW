@@ -323,71 +323,84 @@
     <fieldset>
         <legend id="lesson-legend">Lekcja telegrafii — grupy znaków / znaki wywoławcze</legend>
         <div class="row" style="margin-bottom:.6rem;">
-            <label>Tryb lekcji:
-                <select id="lesson-type">
-                    <option value="koch">Metoda Kocha (stopniowe pary)</option>
-                    <option value="callsign" selected>Znaki wywoławcze (np. SQ1KSM)</option>
-                    <option value="qso">Krótkie łączności (QSO z Twoim znakiem)</option>
-                    <option value="mixed">Losowe znaki (litery + cyfry)</option>
-                    <option value="letters">Tylko litery (A-Z)</option>
-                    <option value="file">Własny plik (.txt / .csv)</option>
-                    <option value="free">Swobodne nadawanie (dekoder na żywo)</option>
-                </select>
-            </label>
-
-            <div id="koch-controls" class="row" style="display:none;">
-                <label>Lekcja:
-                    <select id="koch-stage">
-                        <option value="0">1: K M</option>
-                        <option value="1">2: R S</option>
-                        <option value="2">3: U A</option>
-                        <option value="3">4: P T</option>
-                        <option value="4">5: L O</option>
-                        <option value="5">6: W I</option>
-                        <option value="6">7: N J</option>
-                        <option value="7">8: E F</option>
-                        <option value="8">9: Ø Y</option>
-                        <option value="9">10: V G</option>
-                        <option value="10">11: 5 Q</option>
-                        <option value="11">12: 9 Z</option>
-                        <option value="12">13: H 3</option>
-                        <option value="13">14: 8 B</option>
-                        <option value="14">15: ? 4</option>
-                        <option value="15">16: 2 7</option>
-                        <option value="16">17: C 1</option>
-                        <option value="17">18: D 6</option>
-                        <option value="18">19: X =</option>
-                        <option value="19">20: / &lt;SK&gt;</option>
+            <div class="row" style="flex-wrap:nowrap;">
+                <label>Tryb:
+                    <select id="lesson-type">
+                        <option value="koch">Metoda Kocha</option>
+                        <option value="letters">Tylko litery</option>
+                        <option value="mixed">Losowe znaki</option>
+                        <option value="callsign" selected>Znaki wywoławcze</option>
+                        <option value="qso">Krótkie łączności</option>
+                        <option value="free">Swobodne nadawanie</option>
+                        <option value="file">Własny plik</option>
                     </select>
                 </label>
 
-                <select id="koch-scope">
-                    <option value="only">Tylko nowe znaki</option>
-                    <option value="cumul">Ze wszystkimi poprzednimi</option>
-                </select>
-            </div>
+                <label id="lesson-len-wrap">Długość:
+                    <select id="lesson-len">
+                        <option value="1">1 znak (bardzo łatwy)</option>
+                        <option value="2">2 znaki</option>
+                        <option value="3">3 znaki</option>
+                        <option value="4">4 znaki (łatwy)</option>
+                        <option value="5">5 znaków</option>
+                        <option value="6" selected>6 znaków (standard)</option>
+                        <option value="8">8 znaków</option>
+                        <option value="10">10 znaków</option>
+                    </select>
+                </label>
 
-            <label id="lesson-len-wrap">Długość:
-                <select id="lesson-len">
-                    <option value="1">1 znak (bardzo łatwy)</option>
-                    <option value="2">2 znaki</option>
-                    <option value="3">3 znaki</option>
-                    <option value="4">4 znaki (łatwy)</option>
-                    <option value="5">5 znaków</option>
-                    <option value="6" selected>6 znaków (standard)</option>
-                    <option value="8">8 znaków</option>
-                    <option value="10">10 znaków</option>
-                </select>
-            </label>
+                <label id="callsign-suffix-wrap" style="display:none;">Dodaj:
+                    <select id="callsign-suffix">
+                        <option value="none">Sam znak</option>
+                        <option value="random">Losowo: /P, /QRP, /MM</option>
+                        <option value="question">? po znaku</option>
+                    </select>
+                </label>
 
-            <div id="file-controls" class="row" style="display:none;">
-                <button type="button" id="file-upload-btn" class="nav-btn">📂 Wczytaj plik</button>
-                <input type="file" id="lesson-file-input" accept=".txt,.csv" style="display:none;">
-                <select id="file-order">
-                    <option value="random">Losowo z pliku</option>
-                    <option value="seq">Po kolei z pliku</option>
-                </select>
-                <span id="file-info" style="font-size:.82rem; color:#9aa3b0;">Brak pliku</span>
+                <div id="koch-controls" class="row" style="display:none; flex-wrap:nowrap;">
+                    <label>Lekcja:
+                        <select id="koch-stage">
+                            <option value="0">1: K M</option>
+                            <option value="1">2: R S</option>
+                            <option value="2">3: U A</option>
+                            <option value="3">4: P T</option>
+                            <option value="4">5: L O</option>
+                            <option value="5">6: W I</option>
+                            <option value="6">7: N J</option>
+                            <option value="7">8: E F</option>
+                            <option value="8">9: Ø Y</option>
+                            <option value="9">10: V G</option>
+                            <option value="10">11: 5 Q</option>
+                            <option value="11">12: 9 Z</option>
+                            <option value="12">13: H 3</option>
+                            <option value="13">14: 8 B</option>
+                            <option value="14">15: ? 4</option>
+                            <option value="15">16: 2 7</option>
+                            <option value="16">17: C 1</option>
+                            <option value="17">18: D 6</option>
+                            <option value="18">19: X =</option>
+                            <option value="19">20: / &lt;SK&gt;</option>
+                        </select>
+                    </label>
+
+                    <select id="koch-scope">
+                        <option value="only">Tylko nowe</option>
+                        <option value="cumul">Wszystkie</option>
+                    </select>
+                </div>
+
+                <div id="file-controls" class="row" style="display:none; flex-wrap:nowrap;">
+                    <button type="button" id="file-upload-btn" class="nav-btn">📂 Wczytaj plik</button>
+                    <button type="button" id="file-paste-btn" class="nav-btn">Wklej ze schowka</button>
+                    <input type="file" id="lesson-file-input" accept=".txt,.csv" style="display:none;">
+                    <select id="file-order">
+                        <option value="random">Losowo</option>
+                        <option value="seq">Po kolei</option>
+                    </select>
+                    <span id="file-info"
+                        style="font-size:.82rem; color:#9aa3b0; max-width:12em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Brak
+                        pliku</span>
+                </div>
             </div>
         </div>
 
@@ -454,9 +467,9 @@
     </div>
 
     <script src="morse.js?v=5"></script>
-    <script src="lessons.js?v=11"></script>
+    <script src="lessons.js?v=15"></script>
     <script src="midi.js?v=4"></script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 
 </html>

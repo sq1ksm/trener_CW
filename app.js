@@ -1,5 +1,6 @@
 function saveSettings() {
     const activeBtn = document.querySelector(".mode-btn.active-mode");
+    const callsignSuffix = document.getElementById("callsign-suffix");
     localStorage.setItem("cwTrainerPrefs", JSON.stringify({
         myCall: getMyCall(),
         wpm: wpmSlider.value,
@@ -13,6 +14,7 @@ function saveSettings() {
         prog: activeBtn ? activeBtn.dataset.prog : "7",
         lessonType: lessonType.value,
         lessonLen: lessonLen.value,
+        callsignSuffix: callsignSuffix ? callsignSuffix.value : "none",
         fileOrder: fileOrder.value,
         kochStage: kochStage ? kochStage.value : "0",
         kochScope: kochScope ? kochScope.value : "only",
@@ -37,6 +39,8 @@ function loadSettings() {
             if (typeof p.softError === "boolean" && softErrorCheck) { softErrorCheck.checked = p.softError; }
             if (typeof p.soundFeedback === "boolean" && soundFeedbackCheck) { soundFeedbackCheck.checked = p.soundFeedback; }
             if (p.lessonLen) lessonLen.value = p.lessonLen;
+            const callsignSuffix = document.getElementById("callsign-suffix");
+            if (p.callsignSuffix && callsignSuffix) callsignSuffix.value = p.callsignSuffix;
             if (p.fileOrder) fileOrder.value = p.fileOrder;
             if (p.kochStage && kochStage) kochStage.value = p.kochStage;
             if (p.kochScope && kochScope) kochScope.value = p.kochScope;
@@ -72,7 +76,7 @@ if (myCallInput) {
 }
 
 [wpmSlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck,
-    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, fileOrder, kochStage, kochScope,
+    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, document.getElementById("callsign-suffix"), fileOrder, kochStage, kochScope,
     noteDitEl, noteDahEl, anyNoteEl].forEach(el => {
         if (el) el.addEventListener("change", saveSettings);
     });
