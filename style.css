@@ -339,6 +339,10 @@ body.focus-mode .lesson-settings {
     display: none !important;
 }
 
+body.focus-mode #status:not(.status-error) {
+    display: none !important;
+}
+
 body.focus-mode fieldset {
     border: none;
     background: transparent;

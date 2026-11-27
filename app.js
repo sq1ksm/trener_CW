@@ -142,28 +142,19 @@ const fsBtn = document.getElementById("fullscreen-btn");
 function setFocusMode(active) {
     document.body.classList.toggle("focus-mode", active);
     if (fsBtn) {
-        fsBtn.textContent = active ? "✕ Wyjdź" : "⛶ Pełny ekran";
+        fsBtn.textContent = active ? "✕ Wyjdź" : "Tryb ⛶";
         fsBtn.classList.toggle("danger-btn", active);
         fsBtn.classList.toggle("nav-btn", !active);
     }
 }
 
-if (fsBtn) {
-    fsBtn.addEventListener("click", async () => {
-        const entering = !document.body.classList.contains("focus-mode");
-        setFocusMode(entering);
-        try {
-            if (entering && document.documentElement.requestFullscreen && !document.fullscreenElement) {
-                await document.documentElement.requestFullscreen();
-            } else if (!entering && document.fullscreenElement) {
-                await document.exitFullscreen();
-            }
-        } catch (e) { }
-    });
+function enterFocusMode() {
+    setFocusMode(true);
 }
 
-document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement && document.body.classList.contains("focus-mode")) {
-        setFocusMode(false);
-    }
-});
+if (fsBtn) {
+    fsBtn.addEventListener("click", () => {
+        const entering = !document.body.classList.contains("focus-mode");
+        setFocusMode(entering);
+    });
+}

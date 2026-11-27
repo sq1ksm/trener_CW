@@ -5,6 +5,7 @@ const myLocatorInput = document.getElementById("my-locator-input");
 
 const lessonType = document.getElementById("lesson-type"), lessonLen = document.getElementById("lesson-len"), lessonLenWrap = document.getElementById("lesson-len-wrap");
 const lessonDirection = document.getElementById("lesson-direction");
+const receiveStartBtn = document.getElementById("receive-start-btn");
 const receiveAnswerRow = document.getElementById("receive-answer-row");
 const receiveGoodBtn = document.getElementById("receive-good-btn");
 const receiveBadBtn = document.getElementById("receive-bad-btn");
@@ -26,7 +27,7 @@ const kochScope = document.getElementById("koch-scope");
 
 let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, isPlayingDemo = false, demoAbort = false;
 let customWords = new Array(), customWordIdx = 0;
-let receiveChecked = false, receivePlaybackDone = false;
+let receiveChecked = false, receivePlaybackDone = false, receiveStarted = false;
 let receiveCountdownShown = false, receiveCountdownPromise = null;
 
 /* ============================================================
@@ -160,6 +161,7 @@ function updateLessonControlsUI() {
     const mode = lessonType.value;
     const isFile = mode === "file", isQso = mode === "qso", isKoch = mode === "koch", isFree = mode === "free", isCallsign = mode === "callsign";
     const isReceive = lessonDirection && lessonDirection.value === "receive";
+    if (receiveStartBtn) receiveStartBtn.style.display = isReceive && !receiveStarted ? "inline-block" : "none";
 
     if (lessonLen) {
         const prevVal = lessonLen.value;
@@ -219,7 +221,7 @@ function loadCustomLessonText(content, sourceType) {
     fileInfo.textContent = "";
     fileInfo.title = fileInfo.textContent;
     lessonMsgEl.textContent = "";
-    nextLessonWord();
+    nextLessonWord(true, false);
 }
 
 fileInput.addEventListener("change", (e) => {
@@ -494,7 +496,7 @@ function stopDemoWord() {
     }
 }
 
-function nextLessonWord(restartReceiveCountdown = false) {
+function nextLessonWord(restartReceiveCountdown = false, autoStartReceive = true) {
     stopDemoWord(); clearTimeout(lessonGapTimer);
     lessonMsgEl.style.color = "";
     targetWord = generateLessonWord(); typedWord = ""; symbolBuf = "";
@@ -504,7 +506,7 @@ function nextLessonWord(restartReceiveCountdown = false) {
     if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
     updateLessonControlsUI();
     renderLesson();
-    if (lessonDirection && lessonDirection.value === "receive") {
+    if (autoStartReceive && lessonDirection && lessonDirection.value === "receive") {
         setTimeout(() => {
             if (!receiveChecked && targetWord) playDemoWord();
         }, 350);
@@ -681,6 +683,8 @@ async function playDemoWord() {
         await sleep(d * (charGapMult - 1));
     }
     if (!demoAbort && lessonDirection && lessonDirection.value === "receive") {
+        receiveStarted = true;
+        updateLessonControlsUI();
         receivePlaybackDone = true;
         updateLessonControlsUI();
         renderLesson();
@@ -900,18 +904,19 @@ if (statsResetBtn) {
     });
 }
 
-lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
 if (lessonDirection) lessonDirection.addEventListener("change", () => {
+    receiveStarted = false;
     updateLessonControlsUI();
     syncFreeModeButtons();
     lessonMsgEl.textContent = "";
-    nextLessonWord(true);
+    nextLessonWord(true, false);
 });
-lessonLen.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
-if (callsignSuffix) callsignSuffix.addEventListener("change", () => { lessonMsgEl.textContent = ""; nextLessonWord(true); });
-fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.textContent = ""; nextLessonWord(true); });
-if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
-if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+lessonLen.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
+if (callsignSuffix) callsignSuffix.addEventListener("change", () => { lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
+fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
+if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
+if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true, false); });
 document.getElementById("lesson-next-btn").addEventListener("click", () => { lessonMsgEl.textContent = ""; nextLessonWord(true); });
 
 document.getElementById("lesson-reset-btn").addEventListener("click", async () => {
@@ -958,6 +963,14 @@ document.getElementById("lesson-reset-btn").addEventListener("click", async () =
 });
 
 if (playDemoBtn) playDemoBtn.addEventListener("click", playDemoWord);
+if (receiveStartBtn) receiveStartBtn.addEventListener("click", () => {
+    if (!lessonDirection || lessonDirection.value !== "receive") return;
+    receiveStarted = true;
+    updateLessonControlsUI();
+    initAudio();
+    if (typeof enterFocusMode === "function") enterFocusMode();
+    playDemoWord();
+});
 if (receiveGoodBtn) receiveGoodBtn.addEventListener("click", () => confirmReceiveAnswer(true));
 if (receiveBadBtn) receiveBadBtn.addEventListener("click", () => confirmReceiveAnswer(false));
 document.addEventListener("keydown", (event) => {
