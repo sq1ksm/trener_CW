@@ -8,7 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Trener Telegrafii CW (MIDI) by SQ1KSM v3</title>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 
 <body>
@@ -429,8 +429,14 @@
         <div class="lesson-box" id="lesson-box">
             <div class="lesson-grid" id="lesson-grid"></div>
             <div id="receive-answer-row" class="row receive-answer-row" style="display:none;">
-                <button id="receive-good-btn" type="button" class="receive-good-btn">✓ Dobrze (Enter)</button>
-                <button id="receive-bad-btn" type="button" class="danger-btn">✕ Źle</button>
+                <button id="receive-good-btn" type="button" class="receive-good-btn">
+                    <span>✓ Dobrze (Enter)</span>
+                    <span class="receive-paddle-label">DIT</span>
+                </button>
+                <button id="receive-bad-btn" type="button" class="danger-btn">
+                    <span>✕ Źle</span>
+                    <span class="receive-paddle-label">DAH</span>
+                </button>
             </div>
             <div class="lesson-msg" id="lesson-msg"></div>
             <div class="lesson-stats" id="lesson-stats">Zaliczone: 0 | Błędy: 0</div>

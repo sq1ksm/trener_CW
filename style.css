@@ -280,6 +280,22 @@ button.active-mode {
     flex-shrink: 0;
 }
 
+.receive-answer-row button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 9rem;
+    min-height: 3.6rem;
+    padding: .5rem 1rem;
+    line-height: 1.2;
+}
+
+.receive-paddle-label {
+    font-size: .82em;
+    opacity: .8;
+}
+
 .receive-answer-row input {
     width: min(18rem, 70vw);
     padding: .55rem .7rem;
@@ -296,7 +312,6 @@ button.active-mode {
     color: #001513;
     border: 1px solid #00d1b2;
     border-radius: 6px;
-    padding: .5rem .8rem;
     font-weight: 700;
 }
 
