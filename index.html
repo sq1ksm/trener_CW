@@ -12,6 +12,110 @@
 </head>
 
 <body>
+    <!-- 🔧 KONTROLA PRZEGLĄDARKI -->
+    <!-- Komunikat o braku obsługi Web MIDI API (domyślnie ukryty) -->
+    <div id="midi-warning-overlay" style="display: none;">
+        <div class="midi-warning-box">
+            <h2>⚠️ Przeglądarka nie obsługuje Web MIDI API</h2>
+            <p>Twoja obecna przeglądarka nie pozwala na obsługę klucza telegraficznego przez USB/MIDI (część funkcji
+                aplikacji może nie działać).</p>
+            <p>Aby korzystać z pełnych możliwości <strong>Trenera Telegrafii CW</strong>, uruchom stronę w jednej z
+                obsługiwanych przeglądarek:</p>
+            <ul>
+                <li><strong>Google Chrome</strong> (Windows, macOS, Linux, Android)</li>
+                <li><strong>Microsoft Edge</strong> (Windows, macOS)</li>
+                <li><strong>Opera</strong> / <strong>Brave</strong> / <strong>Vivaldi</strong></li>
+            </ul>
+            <p class="small-note">Uwaga: Przeglądarki na urządzeniach Apple iPhone/iPad (iOS/iPadOS) oraz Safari nie
+                obsługują standardu Web MIDI.</p>
+            <button id="close-midi-warning" type="button">Rozumiem, kontynuuj mimo to (tylko generator /
+                klawiatura)</button>
+        </div>
+    </div>
+
+    <style>
+        #midi-warning-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .midi-warning-box {
+            background: #1e2229;
+            color: #f1f5f9;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            max-width: 520px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .midi-warning-box h2 {
+            margin-top: 0;
+            color: #fbbf24;
+            font-size: 1.25rem;
+        }
+
+        .midi-warning-box ul {
+            margin: 12px 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .midi-warning-box .small-note {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        #close-midi-warning {
+            margin-top: 14px;
+            width: 100%;
+            padding: 10px 16px;
+            background: #f59e0b;
+            color: #111827;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #close-midi-warning:hover {
+            background: #fbbf24;
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Sprawdzenie czy przeglądarka obsługuje Web MIDI API oraz czy strona działa w bezpiecznym kontekście (HTTPS / localhost)
+            const isWebMidiSupported = typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function";
+            const isSecure = window.isSecureContext; // Web MIDI wymaga HTTPS lub localhost
+
+            if (!isWebMidiSupported || !isSecure) {
+                const overlay = document.getElementById("midi-warning-overlay");
+                const closeBtn = document.getElementById("close-midi-warning");
+
+                if (overlay) {
+                    overlay.style.display = "flex";
+                }
+
+                if (closeBtn) {
+                    closeBtn.addEventListener("click", () => {
+                        overlay.style.display = "none";
+                    });
+                }
+            }
+        });
+    </script>
+
+
+    <!-- 🔧 KONIEC - KONTROLA PRZEGLĄDARKI -->
+
 
     <div class="topbar">
         <h1>Trener Telegrafii CW by SQ1KSM</h1>
@@ -24,6 +128,77 @@
         </div>
     </div>
     <p class="status" id="status">Inicjalizacja Web MIDI…</p>
+
+
+
+    <!-- Ostrzeżenie o braku obsługi Web MIDI API (domyślnie ukryte) -->
+    <div id="midi-compat-banner"
+        style="display:none; background:#1a1212; border:1px solid #ef4444; border-radius:6px; padding:14px 16px; margin:10px 0; color:#e6e6e6; line-height:1.5;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+            <div>
+                <strong style="color:#f87171; font-size:1rem;">⚠️ Twoja przeglądarka nie obsługuje Web MIDI API</strong>
+                <p id="midi-compat-reason" style="margin:6px 0 8px 0; font-size:.92rem; color:#cbd5e1;">
+                    Obsługa fizycznego klucza CW / dongla Vail przez USB wymaga przeglądarki wspierającej standard Web
+                    MIDI.
+                </p>
+                <p style="margin:0; font-size:.9rem;">
+                    Uruchom aplikację w: <strong style="color:#7fd1b9;">Google Chrome</strong>, <strong
+                        style="color:#7fd1b9;">Microsoft Edge</strong>, <strong style="color:#7fd1b9;">Opera</strong>
+                    lub <strong style="color:#7fd1b9;">Android Chrome</strong>.
+                </p>
+                <p style="margin:6px 0 0 0; font-size:.82rem; color:#94a3b8;">
+                    Wskazówka: W obecnej przeglądarce nadal możesz korzystać z treningu odbioru (RX) oraz klawiatury
+                    ekranowej/komputerowej.
+                </p>
+            </div>
+            <button type="button" id="dismiss-midi-banner" class="nav-btn"
+                style="flex-shrink:0; border-color:#ef4444; color:#fca5a5;">✕ Zamknij</button>
+        </div>
+    </div>
+
+    <script>
+        (function checkWebMidiCompatibility() {
+            const hasWebMidi = typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function";
+            const isSecure = window.isSecureContext; // Web MIDI wymaga HTTPS lub localhost
+
+            if (!hasWebMidi || !isSecure) {
+                const banner = document.getElementById("midi-compat-banner");
+                const statusEl = document.getElementById("status");
+                const reasonEl = document.getElementById("midi-compat-reason");
+                const dismissBtn = document.getElementById("dismiss-midi-banner");
+
+                if (banner) banner.style.display = "block";
+
+                if (!isSecure && hasWebMidi) {
+                    // Przeglądarka jest dobra (np. Chrome), ale strona otwarta po zwykłym HTTP zamiast HTTPS
+                    if (reasonEl) {
+                        reasonEl.textContent = "Przeglądarka wspiera Web MIDI, ale zablokowała dostęp, ponieważ strona nie jest otwarta przez bezpieczne połączenie HTTPS (lub localhost).";
+                    }
+                    if (statusEl) {
+                        statusEl.textContent = "Błąd Web MIDI: wymagane połączenie HTTPS.";
+                        statusEl.style.color = "#f87171";
+                    }
+                } else {
+                    // Przeglądarka nie obsługuje Web MIDI (np. Firefox, Safari, przeglądarki na iOS)
+                    if (statusEl) {
+                        statusEl.textContent = "Brak obsługi Web MIDI w tej przeglądarce (tryb bez klucza USB).";
+                        statusEl.style.color = "#f87171";
+                    }
+                }
+
+                if (dismissBtn && banner) {
+                    dismissBtn.addEventListener("click", () => {
+                        banner.style.display = "none";
+                    });
+                }
+            }
+        })();
+    </script>
+
+
+
+
+
 
     <div id="settings-drawer" class="drawer">
         <fieldset>
@@ -216,7 +391,8 @@
             </div>
         </div>
 
-        <div class="row" style="margin-bottom:.6rem;">
+        <div class="row" style="margin-bottom:.6rem; justify-content: center;">
+
             <button id="toggle-auto-btn" class="nav-btn">🎧 Auto-QSO</button>
             <button id="lesson-next-btn" class="force-btn">Następny</button>
             <button id="lesson-play-btn" class="nav-btn">🔊 Odsłuchaj</button>
