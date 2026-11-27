@@ -148,13 +148,47 @@ function setFocusMode(active) {
     }
 }
 
+function reportFullscreenError(error) {
+    const message = error && error.message ? error.message : "Pełny ekran jest niedostępny w tej przeglądarce.";
+    const lessonMessage = document.getElementById("lesson-msg");
+    if (lessonMessage) {
+        lessonMessage.style.color = "#f87171";
+        lessonMessage.textContent = `Nie udało się włączyć pełnego ekranu: ${message}`;
+    } else {
+        console.error("Nie udało się włączyć pełnego ekranu:", error);
+    }
+}
+
 function enterFocusMode() {
     setFocusMode(true);
+    if (!document.documentElement.requestFullscreen) {
+        setFocusMode(false);
+        reportFullscreenError(null);
+        return;
+    }
+    if (document.fullscreenElement) return;
+    document.documentElement.requestFullscreen().catch(error => {
+        setFocusMode(false);
+        reportFullscreenError(error);
+    });
 }
 
 if (fsBtn) {
     fsBtn.addEventListener("click", () => {
         const entering = !document.body.classList.contains("focus-mode");
-        setFocusMode(entering);
+        if (entering) {
+            enterFocusMode();
+        } else {
+            setFocusMode(false);
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(error => reportFullscreenError(error));
+            }
+        }
     });
 }
+
+document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && document.body.classList.contains("focus-mode")) {
+        setFocusMode(false);
+    }
+});
