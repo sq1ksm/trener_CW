@@ -129,11 +129,18 @@ function handleMidiMessage(ev) {
     if (chSel.value !== "all" && Number(chSel.value) !== ch) return;
 
     if (cmd === 0x90 && d2 > 0) {
+        if (lessonDirection && lessonDirection.value === "receive") {
+            if (!receivePlaybackDone || receiveChecked) return;
+            if (d1 === Number(noteDitEl.value)) confirmReceiveAnswer(true);
+            else if (d1 === Number(noteDahEl.value)) confirmReceiveAnswer(false);
+            return;
+        }
         if (!isAcceptedNote(d1)) return;
         addLog(`RX CH${ch} ON note=${d1} vel=${d2}`);
         onKeyDown();
     }
     else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) {
+        if (lessonDirection && lessonDirection.value === "receive") return;
         if (!isAcceptedNote(d1)) return;
         addLog(`RX CH${ch} OFF note=${d1}`);
         onKeyUp();
