@@ -8,8 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Trener Telegrafii CW (MIDI) by SQ1KSM v3</title>
-    <link rel="stylesheet" href="https://googleapis.com">
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 
 <body>
@@ -218,9 +217,10 @@
         </div>
 
         <div class="row" style="margin-bottom:.6rem;">
+            <button id="toggle-auto-btn" class="nav-btn">🎧 Auto-QSO</button>
             <button id="lesson-next-btn" class="force-btn">Następny</button>
-            <button id="lesson-play-btn" class="nav-btn">🔊 Odsłuchaj wzór</button>
-            <button id="lesson-reset-btn">Powtórz bieżący</button>
+            <button id="lesson-play-btn" class="nav-btn">🔊 Odsłuchaj</button>
+            <button id="lesson-reset-btn">Powtórz</button>
             <button id="stats-reset-btn">🔄 Zeruj liczniki</button>
             <button id="fullscreen-btn" class="nav-btn">⛶ Pełny ekran</button>
         </div>
@@ -232,8 +232,53 @@
         </div>
     </fieldset>
 
+    <!-- 🔧 Modal potwierdzenia (nowoczesny, zamiast confirm()) -->
+    <div id="confirm-modal" class="confirm-overlay" aria-hidden="true">
+        <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="confirm-icon" id="confirm-icon">⚠️</div>
+            <h2 class="confirm-title" id="confirm-title">Potwierdź</h2>
+            <p class="confirm-msg" id="confirm-msg">Czy na pewno?</p>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-btn cancel" id="confirm-cancel">Anuluj</button>
+                <button type="button" class="confirm-btn ok" id="confirm-ok">Tak, potwierdzam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔧 Modal Auto-QSO -->
+    <div id="auto-modal" class="confirm-overlay" aria-hidden="true">
+        <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="auto-title"
+            style="max-width:440px; text-align:left;">
+            <div class="confirm-icon" style="text-align:center;">🎧</div>
+            <h2 class="confirm-title" id="auto-title" style="text-align:center;">Tryb Auto-QSO</h2>
+            <p class="confirm-msg" id="auto-msg" style="text-align:center;">
+                System będzie nadawał wzór, a Ty odpowiadasz. Po poprawnym nadaniu — następny wyraz.
+            </p>
+
+            <label style="display:flex; align-items:center; gap:.6rem; margin:.6rem 0;">
+                <input type="checkbox" id="auto-repeat-on-error" checked>
+                Powtarzaj ten sam wyraz po błędzie
+            </label>
+
+            <label style="display:flex; align-items:center; gap:.6rem; margin:.6rem 0;">
+                <input type="checkbox" id="auto-show-text">
+                Pokazuj tekst wyrazu (domyślnie ukryty — słuchaj!)
+            </label>
+
+            <label style="display:flex; align-items:center; gap:.6rem; margin:.6rem 0;">
+                <input type="checkbox" id="auto-play-first" checked>
+                Nadaj wzór od razu po starcie
+            </label>
+
+            <div class="confirm-actions" style="margin-top:1rem;">
+                <button type="button" class="confirm-btn cancel" id="auto-cancel">Anuluj</button>
+                <button type="button" class="confirm-btn ok safe" id="auto-start">▶ Start</button>
+            </div>
+        </div>
+    </div>
+
     <script src="morse.js?v=5"></script>
-    <script src="lessons.js?v=9"></script>
+    <script src="lessons.js?v=11"></script>
     <script src="midi.js?v=4"></script>
     <script src="app.js?v=5"></script>
 </body>

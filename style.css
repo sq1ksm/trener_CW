@@ -195,7 +195,6 @@ button.active-mode {
     font-weight: bold;
 }
 
-
 .lesson-grid.qso-mode {
     display: flex;
     flex-wrap: wrap;
@@ -324,4 +323,199 @@ body.focus-mode .lesson-grid {
 
 body.focus-mode .lesson-grid.qso-mode {
     font-size: clamp(1.5rem, 4.5vw, 2.8rem);
+}
+
+/* Wyróżnienie Auto-QSO w pełnym ekranie */
+body.focus-mode #toggle-auto-btn {
+    background: #00a896;
+    color: #000;
+    font-weight: 700;
+    border-color: #00a896;
+}
+
+body.focus-mode #toggle-auto-btn.danger-btn {
+    background: #e53935;
+    color: #fff;
+    border-color: #ff6f60;
+}
+
+/* ============================================================
+   🔧 Modal potwierdzenia
+   ============================================================ */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.confirm-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.confirm-box {
+    background: #181b20;
+    border: 1px solid #2a2f38;
+    border-radius: 12px;
+    padding: 1.4rem 1.6rem 1.2rem;
+    max-width: 380px;
+    width: calc(100% - 2rem);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 209, 178, 0.1);
+    text-align: center;
+    transform: translateY(10px) scale(0.97);
+    transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.confirm-overlay.open .confirm-box {
+    transform: translateY(0) scale(1);
+}
+
+.confirm-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+
+.confirm-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    color: #e6e6e6;
+}
+
+.confirm-msg {
+    font-size: 0.92rem;
+    color: #9aa3b0;
+    margin: 0 0 1.2rem;
+    line-height: 1.45;
+    white-space: pre-line;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.confirm-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s, transform 0.05s;
+    min-width: 100px;
+}
+
+.confirm-btn:active {
+    transform: scale(0.97);
+}
+
+.confirm-btn.cancel {
+    background: #2c3a4d;
+    color: #e6e6e6;
+    border-color: #364252;
+}
+
+.confirm-btn.cancel:hover {
+    background: #364252;
+}
+
+.confirm-btn.ok {
+    background: #e53935;
+    color: #fff;
+    border-color: #ff6f60;
+}
+
+.confirm-btn.ok:hover {
+    background: #ff5252;
+}
+
+.confirm-btn.ok.safe {
+    background: #00a896;
+    color: #000;
+    border-color: #00a896;
+}
+
+.confirm-btn.ok.safe:hover {
+    background: #00d1b2;
+}
+
+.confirm-btn:focus-visible {
+    outline: 2px solid #7fd1b9;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .confirm-overlay,
+    .confirm-box {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   🔧 Auto-QSO: pasek stanu
+   ============================================================ */
+.auto-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: .5rem 1rem;
+    margin: .4rem 0;
+    background: linear-gradient(90deg, rgba(0, 168, 150, 0.15), rgba(0, 209, 178, 0.05));
+    border: 1px solid #00a896;
+    border-radius: 8px;
+    font-size: .9rem;
+    color: #7fd1b9;
+    font-weight: 600;
+    animation: autoPulse 1.6s ease-in-out infinite;
+}
+
+.auto-status-bar.tx {
+    background: linear-gradient(90deg, rgba(229, 57, 53, 0.15), rgba(255, 82, 82, 0.05));
+    border-color: #ff5252;
+    color: #ff8a80;
+}
+
+.auto-status-bar.rx {
+    background: linear-gradient(90deg, rgba(0, 230, 118, 0.15), rgba(0, 230, 118, 0.05));
+    border-color: #00e676;
+    color: #69f0ae;
+}
+
+.auto-status-bar.wait {
+    background: linear-gradient(90deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.05));
+    border-color: #f5a623;
+    color: #ffd180;
+}
+
+@keyframes autoPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .75;
+    }
+}
+
+body.auto-qso-mode #lesson-next-btn,
+body.auto-qso-mode #lesson-reset-btn {
+    opacity: .35;
+    pointer-events: none;
 }

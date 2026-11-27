@@ -21,7 +21,17 @@ const kochScope = document.getElementById("koch-scope");
 
 let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, isPlayingDemo = false, demoAbort = false;
 let customWords = new Array(), customWordIdx = 0;
-let softErrorTimer = null; // Dodane dla spójności
+
+/* ============================================================
+   AUTO-QSO — zmienne stanu (muszą być na początku, bo funkcje niżej ich używają)
+   ============================================================ */
+let autoQsoActive = false;
+let autoQsoRepeatOnError = true;
+let autoQsoShowText = false;
+let autoQsoPlayFirst = true;
+let autoQsoGenerating = false;
+let autoQsoIdleTimer = null;
+const autoStatusBar = document.createElement("div");
 
 function getMyCall() {
     const clean = (myCallInput ? myCallInput.value : "SQ1KSM").trim().toUpperCase().replace(/[^A-Z0-9/]/g, "");
@@ -41,6 +51,59 @@ function getMyQth() {
 function getMyLocator() {
     const clean = (myLocatorInput ? myLocatorInput.value : "JO72IP").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     return clean || "JO72IP";
+}
+
+/* ============================================================
+   🔧 MODAL POTWIERDZENIA (showConfirm)
+   ============================================================ */
+function showConfirm({ title = "Potwierdź", msg = "Czy na pewno?", okText = "Tak", cancelText = "Anuluj", icon = "⚠️", danger = true } = {}) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById("confirm-modal");
+        const titleEl = document.getElementById("confirm-title");
+        const msgEl = document.getElementById("confirm-msg");
+        const iconEl = document.getElementById("confirm-icon");
+        const okBtn = document.getElementById("confirm-ok");
+        const cancelBtn = document.getElementById("confirm-cancel");
+
+        if (!overlay) { resolve(window.confirm(msg)); return; }
+
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+        iconEl.textContent = icon;
+        okBtn.textContent = okText;
+        cancelBtn.textContent = cancelText;
+        okBtn.classList.toggle("safe", !danger);
+
+        let resolved = false;
+        const finish = (result) => {
+            if (resolved) return;
+            resolved = true;
+            overlay.classList.remove("open");
+            overlay.setAttribute("aria-hidden", "true");
+            document.removeEventListener("keydown", onKey);
+            overlay.removeEventListener("click", onOverlayClick);
+            okBtn.removeEventListener("click", onOk);
+            cancelBtn.removeEventListener("click", onCancel);
+            resolve(result);
+        };
+
+        const onOk = () => finish(true);
+        const onCancel = () => finish(false);
+        const onOverlayClick = (e) => { if (e.target === overlay) finish(false); };
+        const onKey = (e) => {
+            if (e.key === "Escape") { e.preventDefault(); finish(false); }
+            else if (e.key === "Enter") { e.preventDefault(); finish(true); }
+        };
+
+        okBtn.addEventListener("click", onOk);
+        cancelBtn.addEventListener("click", onCancel);
+        overlay.addEventListener("click", onOverlayClick);
+        document.addEventListener("keydown", onKey);
+
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
+        setTimeout(() => cancelBtn.focus(), 50);
+    });
 }
 
 function tokenizeWord(str) {
@@ -166,7 +229,6 @@ function generateQsoPhrase() {
     const rst = randItem(new Array("599", "579", "589", "559"));
     const nr = String(Math.floor(Math.random() * 199) + 1).padStart(3, "0");
 
-    // Baza imion, miast i lokatorów dla "drugiej strony" (DX)
     const imionaDx = new Array("JAN", "ANNA", "PIOTR", "MARIA", "KRZYSZTOF", "TOMASZ", "AGNIESZKA", "MAREK");
     const qthDx = new Array("WARSZAWA", "KRAKOW", "GDANSK", "WROCLAW", "POZNAN", "LODZ", "SZCZECIN", "BYDGOSZCZ", "LUBLIN", "KATOWICE");
     const locDx = new Array("JO91", "KN09", "JO94", "JO81", "JO82", "JO91", "JO73", "JO93", "KO11", "JO90");
@@ -186,13 +248,9 @@ function generateQsoPhrase() {
         `${dx} TU ${rst} ${nr} ${me}`,
         `R R TU 73 DE ${me} <AR> <SK>`,
         `${dx} GE TNX FER QSO 73 DE ${me} <AR>`,
-
-        // Twoje dane
         `${dx} DE ${me} NAME ${myName} QTH ${myQth} <KN>`,
         `NAME IS ${myName} ${myName} QTH IS ${myQth} ${myQth} <KN>`,
         `QTH ${myQth} ${myQth} LOC ${myLoc} ${myLoc} <KN>`,
-
-        // Dane DX
         `TNX ${dxName} QTH ${dxQth} 73 DE ${me} <AR>`,
         `R R TU ${dxName} QTH ${dxQth} 73 DE ${me} <SK>`,
         `R R ${dxQth} ${dxQth} LOC ${dxLoc} ${dxLoc} 73 <SK>`,
@@ -263,7 +321,6 @@ function renderLesson() {
         const total = passedCount + errorCount;
         const pct = total > 0 ? `${Math.round((passedCount / total) * 100)}%` : "—";
         lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${pct}`;
-
         return;
     }
 
@@ -309,12 +366,18 @@ function renderLesson() {
     lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${percent}%`;
 }
 
-function triggerLessonFail(msg) {
+function triggerLessonFail(msg, reason) {
     clearTimeout(lessonGapTimer);
-    if (typeof playFeedback === "function") playFeedback(false); // Dźwięk błędu
+    if (typeof playFeedback === "function") playFeedback(false);
     errorCount++; flashBox("flash-err");
-    lessonMsgEl.style.color = "#ff5252"; lessonMsgEl.textContent = msg;
-    typedWord = ""; symbolBuf = ""; renderLesson();
+    const reasonStr = reason ? ` [${reason}]` : "";
+    lessonMsgEl.style.color = "#ff5252";
+    lessonMsgEl.textContent = msg + reasonStr;
+    typedWord = "";
+    symbolBuf = "";
+    renderLesson();
+    // 🔧 AUTO-QSO: powiadom o błędzie
+    if (autoQsoActive) autoQsoOnError();
 }
 
 function stopDemoWord() {
@@ -330,6 +393,8 @@ function nextLessonWord() {
     lessonMsgEl.style.color = "";
     targetWord = generateLessonWord(); typedWord = ""; symbolBuf = "";
     renderLesson();
+    // 🔧 AUTO-QSO: po nowym wyrazie nadaj wzór
+    if (autoQsoActive && !autoQsoGenerating) autoQsoTxAndWait();
 }
 
 function checkLessonLetter(letter) {
@@ -346,38 +411,38 @@ function checkLessonLetter(letter) {
     let typedTokens = tokenizeWord(typedWord);
     let idx = typedTokens.length;
 
-    // 2. TWARDA BLOKADA: jeśli próbujesz wpisać więcej znaków niż jest w wyrazie
+    // Twardy limit długości
+    if (typedWord.length >= targetWord.length && typedWord !== targetWord) {
+        triggerLessonFail("Przekroczono długość wyrazu — cały wyraz od nowa!", "za długie");
+        return;
+    }
     if (idx >= targetTokens.length) {
-        triggerLessonFail("Przekroczono długość wyrazu — cały wyraz od nowa!");
+        triggerLessonFail("Przekroczono długość wyrazu — cały wyraz od nowa!", "za długie");
         return;
     }
 
-    // Automatyczne wstawienie spacji, jeśli oczekiwana jest spacja
+    // Automatyczne wstawienie spacji
     if (targetTokens[idx] === " ") {
         typedWord += " ";
         idx++;
     }
 
-    // Dopisujemy znak
     typedWord += letter;
     const soft = softErrorCheck && softErrorCheck.checked;
 
-    // Tryb ostry (natychmiastowy błąd)
     if (!soft && letter !== targetTokens[idx]) {
         const expected = targetTokens[idx];
         const hint = REV_MORSE[expected] ? ` (${fmtChar(expected)} to ${REV_MORSE[expected]})` : "";
-        triggerLessonFail(`Błąd ("${fmtChar(letter)}" zamiast "${fmtChar(expected)}")${hint} — od nowa!`);
+        triggerLessonFail(`Błąd ("${fmtChar(letter)}" zamiast "${fmtChar(expected)}")${hint} — od nowa!`, "zła litera");
         return;
     }
 
-    // Renderowanie na bieżąco (tutaj już mamy pewność, że długość jest OK)
     lessonMsgEl.textContent = "";
     lessonMsgEl.style.color = "";
     renderLesson();
 
     typedTokens = tokenizeWord(typedWord);
 
-    // 3. Sprawdzenie, czy wpisany fragment jest poprawny
     let isCurrentWordCorrect = true;
     let lastSpace = -1;
     for (let i = typedTokens.length - 1; i >= 0; i--) {
@@ -392,51 +457,53 @@ function checkLessonLetter(letter) {
         }
     }
 
-    // 4. Reakcja
     if (typedWord === targetWord) {
-        // Sukces!
         clearTimeout(lessonGapTimer);
-        if (typeof playFeedback === "function") playFeedback(true); // Dźwięk sukcesu
+        if (typeof playFeedback === "function") playFeedback(true);
         passedCount++; flashBox("flash-ok");
         lessonMsgEl.style.color = "#00e676"; lessonMsgEl.textContent = "Zaliczone!";
-        nextLessonWord();
-        return;
-    }
-
-    // Jeśli wpisano spację LUB wyraz jest już pełnej długości
-    const isWordOrPhraseEnd = (lastSpace !== -1 && lastSpace === typedTokens.length - 1) || (typedTokens.length === targetTokens.length);
-
-    if (!isCurrentWordCorrect) {
-        // Wykryto błąd na końcu słowa – czekamy na pauzę międzywyrazową
-        clearTimeout(lessonGapTimer);
-        if (soft) {
-            lessonGapTimer = setTimeout(() => {
-                // Zbieranie błędów z tego słowa do wyświetlenia (maksymalnie 3)
-                const diffs = [];
-                for (let i = currentWordStart; i < typedTokens.length; i++) {
-                    if (typedTokens[i] !== targetTokens[i]) {
-                        diffs.push(`"${fmtChar(typedTokens[i])}" zamiast "${fmtChar(targetTokens[i])}"`);
-                    }
-                }
-                let diffStr = diffs.slice(0, 3).join(", ");
-                if (diffs.length > 3) {
-                    diffStr += ", ...";
-                }
-                triggerLessonFail(`Błędy: ${diffStr} — cały wyraz od nowa!`);
-            }, ditMs * maxGapMult);
+        // 🔧 AUTO-QSO: sukces — następny wyraz
+        if (autoQsoActive) {
+            autoQsoOnSuccess();
         } else {
-            triggerLessonFail(`Błąd — od nowa!`);
+            nextLessonWord();
         }
         return;
     }
 
-    // 5. Uzbrojenie timera na wypadek zbyt długiej przerwy (jeśli wybrano)
+    if (!isCurrentWordCorrect) {
+        clearTimeout(lessonGapTimer);
+        if (soft) {
+            lessonGapTimer = setTimeout(() => {
+                if (typedWord === targetWord) return;
+                const freshTyped = tokenizeWord(typedWord);
+                let freshLastSpace = -1;
+                for (let i = freshTyped.length - 1; i >= 0; i--) {
+                    if (freshTyped[i] === " ") { freshLastSpace = i; break; }
+                }
+                const freshStart = freshLastSpace + 1;
+                const diffs = [];
+                for (let i = freshStart; i < freshTyped.length; i++) {
+                    if (freshTyped[i] !== targetTokens[i]) {
+                        diffs.push(`"${fmtChar(freshTyped[i])}" zamiast "${fmtChar(targetTokens[i])}"`);
+                    }
+                }
+                let diffStr = diffs.slice(0, 3).join(", ");
+                if (diffs.length > 3) diffStr += ", ...";
+                triggerLessonFail(`Błędy: ${diffStr || "niezgodność"} — cały wyraz od nowa!`, "soft");
+            }, ditMs * maxGapMult);
+        } else {
+            triggerLessonFail(`Błąd — od nowa!`, "zła litera");
+        }
+        return;
+    }
+
     if (strictGapCheck.checked) {
         clearTimeout(lessonGapTimer);
         const allowedMult = targetTokens[idx + 1] === " " ? Math.max(maxGapMult, 14) : maxGapMult;
         lessonGapTimer = setTimeout(() => {
             if (typedWord.length > 0 && typedWord !== targetWord) {
-                triggerLessonFail("Spróbuj jeszcze raz!");
+                triggerLessonFail("Spróbuj jeszcze raz!", "timeout");
             }
         }, ditMs * allowedMult);
     }
@@ -476,14 +543,205 @@ function syncFreeModeButtons() {
     const nextBtn = document.getElementById("lesson-next-btn");
     const resetBtn = document.getElementById("lesson-reset-btn");
     const statsResetBtn = document.getElementById("stats-reset-btn");
+    const autoBtn = document.getElementById("toggle-auto-btn");
     if (nextBtn) nextBtn.textContent = isFree ? "Wyczyść" : "Następny";
     if (resetBtn) resetBtn.style.display = isFree ? "none" : "inline-block";
     if (statsResetBtn) statsResetBtn.style.display = isFree ? "none" : "inline-block";
+    if (autoBtn) {
+        // 🔧 Auto-QSO nie ma sensu w trybie swobodnym (brak wzoru do nadania)
+        autoBtn.style.display = isFree ? "none" : "inline-block";
+        // Jeśli Auto-QSO było aktywne, a przechodzimy do free — wyłącz je
+        if (isFree && autoQsoActive) setAutoQsoMode(false);
+    }
 }
 
+/* ============================================================
+   🔧 AUTO-QSO — implementacja
+   ============================================================ */
+function setAutoStatus(text, cls) {
+    autoStatusBar.textContent = text;
+    autoStatusBar.className = "auto-status-bar " + (cls || "");
+    if (!autoStatusBar.parentNode) {
+        lessonBoxEl.parentNode.insertBefore(autoStatusBar, lessonBoxEl);
+    }
+}
+
+function clearAutoStatus() {
+    if (autoStatusBar.parentNode) autoStatusBar.remove();
+}
+
+function setAutoQsoMode(active) {
+    autoQsoActive = active;
+    document.body.classList.toggle("auto-qso-mode", active);
+    const btn = document.getElementById("toggle-auto-btn");
+    if (btn) {
+        btn.textContent = active ? "⏹ Stop" : "🎧 Auto-QSO";
+        btn.classList.toggle("danger-btn", active);
+        btn.classList.toggle("nav-btn", !active);
+    }
+    if (!active) {
+        clearAutoStatus();
+        clearTimeout(autoQsoIdleTimer);
+        autoQsoGenerating = false;
+        lessonGridEl.style.opacity = "1";
+    }
+}
+
+async function autoQsoTxAndWait() {
+    if (!autoQsoActive) return;
+    autoQsoGenerating = true;
+
+    // 1. Ukryj/pokaż tekst
+    if (autoQsoShowText) lessonGridEl.style.opacity = "1";
+    else lessonGridEl.style.opacity = "0.05";
+
+    // 2. Nadaj wzór
+    setAutoStatus("📡 System nadaje wzór…", "tx");
+    if (typeof stopDemoWord === "function") stopDemoWord();
+    await new Promise(r => setTimeout(r, 200));
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const d = Math.round(1200 / Number(wpmSlider.value));
+    initAudio();
+
+    for (const ch of tokenizeWord(targetWord)) {
+        if (!autoQsoActive) { toneOff(); return; }
+        if (ch === " ") { await sleep(d * 4); continue; }
+        const code = REV_MORSE[ch];
+        if (!code) continue;
+        for (const sym of code) {
+            if (!autoQsoActive) { toneOff(); return; }
+            toneOn();
+            await sleep(sym === "-" ? d * 3 : d);
+            toneOff();
+            await sleep(d);
+        }
+        await sleep(d * (charGapMult - 1));
+    }
+
+    if (!autoQsoActive) return;
+
+    // 3. Czekaj na odpowiedź
+    if (!autoQsoShowText) lessonGridEl.style.opacity = "1";
+    setAutoStatus("🎤 Twoja kolej — nadaj odpowiedź…", "rx");
+    autoQsoGenerating = false;
+
+    clearTimeout(autoQsoIdleTimer);
+    autoQsoIdleTimer = setTimeout(() => {
+        if (autoQsoActive && !autoQsoGenerating && typedWord.length === 0) {
+            autoQsoTxAndWait();
+        }
+    }, 60000);
+}
+
+function autoQsoOnSuccess() {
+    if (!autoQsoActive) return;
+    clearTimeout(autoQsoIdleTimer);
+    setAutoStatus("✅ Dobrze! Następny wyraz…", "wait");
+    setTimeout(() => {
+        if (!autoQsoActive) return;
+        nextLessonWord();
+        // nextLessonWord() sam wywoła autoQsoTxAndWait() dzięki hakowi
+    }, 1200);
+}
+
+function autoQsoOnError() {
+    if (!autoQsoActive) return;
+    clearTimeout(autoQsoIdleTimer);
+    if (autoQsoRepeatOnError) {
+        setAutoStatus("❌ Błąd — powtarzam ten sam wyraz…", "wait");
+        setTimeout(() => {
+            if (!autoQsoActive) return;
+            typedWord = ""; symbolBuf = "";
+            renderLesson();
+            autoQsoTxAndWait();
+        }, 1500);
+    } else {
+        setAutoStatus("❌ Błąd — następny wyraz…", "wait");
+        setTimeout(() => {
+            if (!autoQsoActive) return;
+            nextLessonWord();
+            // nextLessonWord() sam wywoła autoQsoTxAndWait()
+        }, 1500);
+    }
+}
+
+// Podłącz przyciski modala
+const autoBtn = document.getElementById("toggle-auto-btn");
+const autoModal = document.getElementById("auto-modal");
+if (autoBtn) {
+    autoBtn.addEventListener("click", () => {
+        if (autoQsoActive) { setAutoQsoMode(false); return; }
+        autoModal.classList.add("open");
+        autoModal.setAttribute("aria-hidden", "false");
+    });
+}
+
+if (autoModal) {
+    document.getElementById("auto-cancel").addEventListener("click", () => {
+        autoModal.classList.remove("open");
+        autoModal.setAttribute("aria-hidden", "true");
+    });
+
+    document.getElementById("auto-start").addEventListener("click", () => {
+        autoQsoRepeatOnError = document.getElementById("auto-repeat-on-error").checked;
+        autoQsoShowText = document.getElementById("auto-show-text").checked;
+        autoQsoPlayFirst = document.getElementById("auto-play-first").checked;
+
+        autoModal.classList.remove("open");
+        autoModal.setAttribute("aria-hidden", "true");
+
+        setAutoQsoMode(true);
+        typedWord = ""; symbolBuf = "";
+        renderLesson();
+
+        if (autoQsoPlayFirst) {
+            setTimeout(() => autoQsoTxAndWait(), 400);
+        } else {
+            setAutoStatus("🎤 Twoja kolej — nadaj odpowiedź…", "rx");
+        }
+    });
+
+    autoModal.addEventListener("click", (e) => {
+        if (e.target === autoModal) {
+            autoModal.classList.remove("open");
+            autoModal.setAttribute("aria-hidden", "true");
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && autoModal.classList.contains("open")) {
+            autoModal.classList.remove("open");
+            autoModal.setAttribute("aria-hidden", "true");
+        }
+    });
+}
+
+/* ============================================================
+   🔧 Przyciski z potwierdzeniem
+   ============================================================ */
 const statsResetBtn = document.getElementById("stats-reset-btn");
 if (statsResetBtn) {
-    statsResetBtn.addEventListener("click", () => {
+    statsResetBtn.addEventListener("click", async () => {
+        if (passedCount === 0 && errorCount === 0) {
+            lessonMsgEl.style.color = "#9aa3b0";
+            lessonMsgEl.textContent = "Liczniki są już wyzerowane.";
+            setTimeout(() => {
+                if (lessonMsgEl.textContent === "Liczniki są już wyzerowane.") lessonMsgEl.textContent = "";
+            }, 1800);
+            return;
+        }
+
+        const ok = await showConfirm({
+            title: "Zerować liczniki?",
+            msg: `Zaliczone: ${passedCount} | Błędy: ${errorCount}\n\nTej operacji nie można cofnąć.`,
+            okText: "Tak, zeruj",
+            cancelText: "Anuluj",
+            icon: "🔄",
+            danger: true
+        });
+        if (!ok) return;
+
         passedCount = 0;
         errorCount = 0;
         lessonMsgEl.textContent = "";
@@ -497,11 +755,32 @@ fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.text
 if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
 document.getElementById("lesson-next-btn").addEventListener("click", () => { lessonMsgEl.textContent = ""; nextLessonWord(); });
-document.getElementById("lesson-reset-btn").addEventListener("click", () => {
+
+document.getElementById("lesson-reset-btn").addEventListener("click", async () => {
+    if (typedWord.length === 0) {
+        stopDemoWord(); clearTimeout(lessonGapTimer);
+        lessonMsgEl.style.color = "";
+        lessonMsgEl.textContent = "";
+        symbolBuf = "";
+        renderLesson();
+        return;
+    }
+
+    const ok = await showConfirm({
+        title: "Powtórzyć bieżący?",
+        msg: "Wpisany tekst zostanie utracony. Kontynuować?",
+        okText: "Tak, powtórz",
+        cancelText: "Anuluj",
+        icon: "↺",
+        danger: true
+    });
+    if (!ok) return;
+
     stopDemoWord(); clearTimeout(lessonGapTimer);
     lessonMsgEl.style.color = "";
     typedWord = ""; symbolBuf = ""; lessonMsgEl.textContent = "";
     renderLesson();
 });
+
 if (playDemoBtn) playDemoBtn.addEventListener("click", playDemoWord);
 syncFreeModeButtons();

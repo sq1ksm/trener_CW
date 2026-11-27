@@ -150,6 +150,70 @@
             padding: .45rem .9rem;
             cursor: pointer;
         }
+
+        /* 🔧 NOWE: spis treści */
+        .toc {
+            background: #0e2a26;
+            border: 1px solid #00a896;
+            border-radius: 8px;
+            padding: .8rem 1.1rem;
+            margin: .8rem 0 1.2rem 0;
+        }
+
+        .toc ol {
+            margin: .3rem 0;
+            padding-left: 1.4rem;
+        }
+
+        .toc a {
+            color: #7fd1b9;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        /* 🔧 NOWE: tabela skrótów */
+        table.keys {
+            width: 100%;
+            border-collapse: collapse;
+            margin: .5rem 0;
+            font-size: .9rem;
+        }
+
+        table.keys th,
+        table.keys td {
+            border: 1px solid #2a2f38;
+            padding: .4rem .6rem;
+            text-align: left;
+        }
+
+        table.keys th {
+            background: #0d0f12;
+            color: #7fd1b9;
+            font-weight: 600;
+        }
+
+        table.keys td:first-child {
+            width: 38%;
+        }
+
+        /* 🔧 NOWE: sekcja rozwiązywania problemów */
+        .faq-q {
+            font-weight: 700;
+            color: #7fd1b9;
+            margin-top: .8rem;
+        }
+
+        .faq-a {
+            margin: .2rem 0 .6rem 0;
+            padding-left: .8rem;
+            border-left: 2px solid #2a2f38;
+        }
+
+        /* 🔧 NOWE: znacznik „nowe" */
     </style>
 </head>
 
@@ -160,7 +224,22 @@
         <button type="button" onclick="window.close()">✕ Zamknij pomoc</button>
     </div>
 
-    <div class="card">
+    <!-- 🔧 NOWE: spis treści -->
+    <div class="toc">
+        <strong>Spis treści:</strong>
+        <ol>
+            <li><a href="#s1">Szybki start i podłączenie sprzętu</a></li>
+            <li><a href="#s2">Tryby lekcji do wyboru</a></li>
+            <li><a href="#s3">Własne pliki (.txt / .csv)</a></li>
+            <li><a href="#s4">Przyciski sterujące, statystyki i kontrola rytmu</a></li>
+            <li><a href="#s5">🎧 Auto-QSO — tryb naprzemienny
+            <li><a href="#s6">Skróty klawiszowe i okna dialogowe
+            <li><a href="#s7">Rozwiązywanie problemów
+            <li><a href="#s8">Tabela kodów CW</a></li>
+        </ol>
+    </div>
+
+    <div class="card" id="s1">
         <h2>1. Szybki start i podłączenie sprzętu</h2>
         <ol>
             <li><strong>Przeglądarka.</strong> Użyj przeglądarki obsługującej Web MIDI API (Google Chrome, Microsoft
@@ -168,11 +247,13 @@
             <li><strong>Dongle Vail / klucz MIDI.</strong> Podłącz interfejs USB przed otwarciem strony (lub odśwież
                 stronę po podłączeniu). W zakładce <code>⚙ Ustawienia</code> wybierz porty Wejścia i Wyjścia MIDI oraz
                 jeden z 5 trybów pracy klucza: <code>Iambic A</code>, <code>Iambic B</code>, <code>Ultimatic</code>,
-                <code>Bug</code> lub <code>Straight Key</code>.</li>
+                <code>Bug</code> lub <code>Straight Key</code>.
+            </li>
             <li><strong>Nuta i kanał MIDI.</strong> Domyślnie aktywna jest opcja <code>Akceptuj każdą nutę</code> oraz
                 kanał <code>Wszystkie</code>, dzięki czemu trener współpracuje od razu z każdym kluczem MIDI. Jeśli
                 chcesz filtrować sygnał, odznacz tę opcję i wpisz konkretną <code>Nutę klucza</code> (np.
-                <code>60</code> dla Vail Adaptera).</li>
+                <code>60</code> dla Vail Adaptera).
+            </li>
             <li><strong>Dźwięk (Sidetone).</strong> Jeśli na górze widoczny jest czerwony przycisk <span
                     class="badge badge-err">🔇 Włącz dźwięk</span>, kliknij go raz (lub dotknij ekranu), aby odblokować
                 audio w przeglądarce.</li>
@@ -181,7 +262,7 @@
         </ol>
     </div>
 
-    <div class="card">
+    <div class="card" id="s2">
         <h2>2. Tryby lekcji do wyboru</h2>
         <ul>
             <li><strong>Metoda Kocha (stopniowe pary).</strong> Pełna 40-znakowa sekwencja (zgodna z LCWO / G4FON)
@@ -190,24 +271,28 @@
                 <code>5Q</code>, <code>9Z</code>, <code>H3</code>, <code>8B</code>, <code>?4</code>, <code>27</code>,
                 <code>C1</code>, <code>D6</code>, <code>X=</code>, <code>/&lt;SK&gt;</code>. Możesz ćwiczyć <em>tylko
                     nowe znaki</em> z wybranej lekcji albo tryb <em>ze wszystkimi poprzednimi</em> (zwiększający
-                częstotliwość nowej pary).</li>
+                częstotliwość nowej pary).
+            </li>
             <li><strong>Znaki wywoławcze.</strong> Generuje realistyczne znaki krótkofalarskie (np. <code>SQ1KSM</code>,
-                <code>DL4AB</code>, <code>K1A</code>) dopasowane do wybranej długości (od 3 do 10 znaków).</li>
+                <code>DL4AB</code>, <code>K1A</code>) dopasowane do wybranej długości (od 3 do 10 znaków).
+            </li>
             <li><strong>Krótkie łączności (QSO).</strong> Ćwiczy całe frazy stosowane na pasmach (np.
                 <code>CQ TEST SQ1KSM</code>, <code>CQ SOTA SQ1KSM/P</code>, raporty <code>599</code>/<code>579</code>,
                 pożegnania <code>73 &lt;AR&gt; &lt;SK&gt;</code>) z automatycznym wstawieniem Twojego znaku wpisanego w
-                <code>⚙ Ustawienia</code>.</li>
+                <code>⚙ Ustawienia</code>.
+            </li>
             <li><strong>Losowe znaki / Tylko litery.</strong> Grupy losowych liter oraz cyfr o wybranej długości od 1 do
                 10 znaków.</li>
             <li><strong>Własny plik (.txt / .csv).</strong> Pozwala wczytać z dysku lub telefonu własną listę słów,
                 skrótów Q albo zdań.</li>
             <li><strong>Swobodne nadawanie (dekoder na żywo).</strong> Tryb bez wzorca — nadajesz dowolny tekst kluczem,
                 a dekoder wyświetla na bieżąco ostatnie 20 znaków (jedną linię) z automatycznym wstawianiem odstępów
-                między wyrazami.</li>
+                między wyrazami. <em>W tym trybie przyciski „Powtórz", „Zeruj liczniki" oraz „🎧 Auto-QSO" są ukryte —
+                    bo nie ma wzorca do powtórzenia ani nadania.</em></li>
         </ul>
     </div>
 
-    <div class="card">
+    <div class="card" id="s3">
         <h2>3. Własne pliki (.txt / .csv) — zasady przygotowania</h2>
         <ul>
             <li><strong>Format zapisu.</strong> Wpisz wyrazy lub krótkie zdania po jednym w każdej linii (oddzielone
@@ -224,32 +309,52 @@
                     pliku</em> (z licznikiem postępu).</li>
         </ul>
     </div>
-    <div class="card">
+
+    <div class="card" id="s4">
         <h2>4. Przyciski sterujące, statystyki i kontrola rytmu</h2>
         <ul>
             <li><span class="badge badge-ok">Następny</span> / <span class="badge badge-ok">Wyczyść</span> — losuje lub
                 pobiera kolejny znak, grupę albo zdanie (w trybie <em>Swobodnego nadawania</em> przycisk zmienia nazwę
                 na <strong>Wyczyść</strong> i zeruje ekran).</li>
-            <li><span class="badge">🔊 Odsłuchaj wzór</span> / <span class="badge badge-err">⏹ Zatrzymaj</span> —
+            <li><span class="badge">🔊 Odsłuchaj</span> / <span class="badge badge-err">⏹ Zatrzymaj</span> —
                 odtwarza bieżący wzór (lub nadany tekst w trybie swobodnym) w aktualnym tempie WPM. Ponowne kliknięcie,
-                zmiana słowa lub dotknięcie klucza natychmiast przerywa odsłuch.</li>
-            <li><span class="badge">Powtórz bieżący</span> — zeruje aktualnie wpisane znaki, pozwalając powtórzyć
-                bieżące zadanie od początku.</li>
+                zmiana słowa lub dotknięcie klawisza natychmiast przerywa odsłuch.</li>
+            <li><span class="badge">Powtórz</span> — zeruje aktualnie wpisane znaki, pozwalając powtórzyć
+                bieżące zadanie od początku. <em>Jeśli nic nie wpisano, przycisk działa od razu (bez pytania). Jeśli
+                    wpisano tekst — pojawia się okno potwierdzenia.</em></li>
             <li><span class="badge">🔄 Zeruj liczniki</span> — resetuje licznik <code>Zaliczone</code>,
                 <code>Błędy</code> oraz wskaźnik procentowy <code>Skuteczność</code> (przydatne przy rozpoczynaniu
-                nowego etapu w Metodzie Kocha, gdzie zaleca się przekroczenie <strong>90%</strong> skuteczności).</li>
+                nowego etapu w Metodzie Kocha, gdzie zaleca się przekroczenie <strong>90%</strong> skuteczności).
+                <em>Przycisk pyta o potwierdzenie w osobnym okienku — przez pomyłkę nie skasujesz statystyk.</em>
+            </li>
             <li><span class="badge">⛶ Pełny ekran</span> — ukrywa górny pasek, ustawienia oraz listy wyboru, zostawiając
-                na ekranie wyłącznie przyciski i dużą zieloną ramkę ze znakami (idealne na smartfon).</li>
+                na ekranie wyłącznie przyciski i dużą zieloną ramkę ze znakami (idealne na smartfon). <em>Przycisk
+                    <code>🎧 Auto-QSO</code> pozostaje widoczny również w pełnym ekranie (wyróżniony kolorem
+                    turkusowym).</em></li>
             <li><strong>Zasady zaliczania i błędy:</strong>
                 <ul>
                     <li>Cyfra zero wyświetlana jest jako przekreślone <code>Ø</code>, aby łatwo odróżnić ją od litery
-                        <code>O</code>.</li>
+                        <code>O</code>.
+                    </li>
                     <li>Nierozpoznana kombinacja kropek i kresek oznaczana jest symbolem <code>¤</code> (dzięki czemu
                         nie myli się z prawidłowym znakiem zapytania <code>?</code>).</li>
                     <li>Odstępy między wyrazami w QSO i zdaniach oznaczone są symbolem <code>␣</code> i zaliczają się
                         automatycznie.</li>
                     <li>Przy błędzie lub zbyt długiej pauzie wyraz resetuje się od nowa, a program podpowiada prawidłowy
                         kod CW pomylonego znaku.</li>
+                    <li><strong>Diagnostyka błędu</strong> — komunikat pod przyciskami zawiera teraz krótki powód w
+                        nawiasach kwadratowych:
+                        <ul>
+                            <li><code>[timeout]</code> — zbyt długa przerwa (przekroczono limit <em>Maks. przerwa w
+                                    wyrazie</em>),</li>
+                            <li><code>[zła litera]</code> — wpisano inny znak niż oczekiwany,</li>
+                            <li><code>[soft]</code> — błąd wykryty w trybie łagodnym (po pauzie),</li>
+                            <li><code>[za długie]</code> — próba wpisania znaku po zakończeniu wyrazu.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Twardy limit długości</strong> — nie można wpisać więcej znaków niż ma bieżący wyraz.
+                        Próba nadania nadmiarowego znaku natychmiast resetuje wyraz (zamiast rosnącego w nieskończoność
+                        pola).</li>
                 </ul>
             </li>
         </ul>
@@ -262,81 +367,167 @@
         </div>
     </div>
 
-    <div class="card">
-        <h2>5. Tabela kodów CW obsługiwanych przez trener</h2>
+    <!-- 🔧 NOWA SEKCJA: Auto-QSO -->
+    <div class="card" id="s5">
+        <h2>5. 🎧 Auto-QSO — tryb naprzemienny</h2>
+        <p>Tryb <strong>Auto-QSO</strong> zamienia trener w prawdziwego korespondenta: system <strong>nadaje wzór
+                telegrafią</strong>, a Ty <strong>odpowiadasz kluczem</strong>. Po poprawnym nadaniu — system
+            przechodzi
+            do następnego wyrazu i znowu nadaje. Jak w prawdziwym QSO.</p>
 
-        <h3>Litery (A–Z)</h3>
-        <div class="morse-grid">
-            <div class="morse-item"><span class="morse-ch">A</span><span class="morse-code">.-</span></div>
-            <div class="morse-item"><span class="morse-ch">B</span><span class="morse-code">-...</span></div>
-            <div class="morse-item"><span class="morse-ch">C</span><span class="morse-code">-.-.</span></div>
-            <div class="morse-item"><span class="morse-ch">D</span><span class="morse-code">-..</span></div>
-            <div class="morse-item"><span class="morse-ch">E</span><span class="morse-code">.</span></div>
-            <div class="morse-item"><span class="morse-ch">F</span><span class="morse-code">..-.</span></div>
-            <div class="morse-item"><span class="morse-ch">G</span><span class="morse-code">--.</span></div>
-            <div class="morse-item"><span class="morse-ch">H</span><span class="morse-code">....</span></div>
-            <div class="morse-item"><span class="morse-ch">I</span><span class="morse-code">..</span></div>
-            <div class="morse-item"><span class="morse-ch">J</span><span class="morse-code">.---</span></div>
-            <div class="morse-item"><span class="morse-ch">K</span><span class="morse-code">-.-</span></div>
-            <div class="morse-item"><span class="morse-ch">L</span><span class="morse-code">.-..</span></div>
-            <div class="morse-item"><span class="morse-ch">M</span><span class="morse-code">--</span></div>
-            <div class="morse-item"><span class="morse-ch">N</span><span class="morse-code">-.</span></div>
-            <div class="morse-item"><span class="morse-ch">O</span><span class="morse-code">---</span></div>
-            <div class="morse-item"><span class="morse-ch">P</span><span class="morse-code">.--.</span></div>
-            <div class="morse-item"><span class="morse-ch">Q</span><span class="morse-code">--.-</span></div>
-            <div class="morse-item"><span class="morse-ch">R</span><span class="morse-code">.-.</span></div>
-            <div class="morse-item"><span class="morse-ch">S</span><span class="morse-code">...</span></div>
-            <div class="morse-item"><span class="morse-ch">T</span><span class="morse-code">-</span></div>
-            <div class="morse-item"><span class="morse-ch">U</span><span class="morse-code">..-</span></div>
-            <div class="morse-item"><span class="morse-ch">V</span><span class="morse-code">...-</span></div>
-            <div class="morse-item"><span class="morse-ch">W</span><span class="morse-code">.--</span></div>
-            <div class="morse-item"><span class="morse-ch">X</span><span class="morse-code">-..-</span></div>
-            <div class="morse-item"><span class="morse-ch">Y</span><span class="morse-code">-.--</span></div>
-            <div class="morse-item"><span class="morse-ch">Z</span><span class="morse-code">--..</span></div>
-        </div>
+        <h3>Jak włączyć</h3>
+        <ol>
+            <li>Kliknij przycisk <span class="badge">🎧 Auto-QSO</span> w pasku przycisków lekcji (obok
+                <code>Następny</code>).
+            </li>
+            <li>W okienku wybierz opcje:
+                <ul>
+                    <li><strong>Powtarzaj ten sam wyraz po błędzie</strong> — po pomyłce system nadaje ten sam wyraz
+                        jeszcze raz (do skutku).</li>
+                    <li><strong>Pokazuj tekst wyrazu</strong> — domyślnie <em>wyłączone</em>, żebyś ćwiczył
+                        <strong>odsłuch</strong>, a nie wzrok. Włącz, jeśli chcesz widzieć tekst.
+                    </li>
+                    <li><strong>Nadaj wzór od razu po starcie</strong> — jeśli wyłączysz, system czeka, aż
+                        <em>Ty</em>
+                        nadasz pierwszy znak (przydatne, gdy chcesz najpierw przygotować się do nadawania).
+                    </li>
+                </ul>
+            </li>
+            <li>Kliknij <span class="badge badge-ok">▶ Start</span>. Przycisk zmieni się na <span
+                    class="badge badge-err">⏹ Stop</span>.</li>
+        </ol>
 
-        <h3>Cyfry (Ø–9)</h3>
-        <div class="morse-grid">
-            <div class="morse-item"><span class="morse-ch">Ø</span><span class="morse-code">-----</span></div>
-            <div class="morse-item"><span class="morse-ch">1</span><span class="morse-code">.----</span></div>
-            <div class="morse-item"><span class="morse-ch">2</span><span class="morse-code">..---</span></div>
-            <div class="morse-item"><span class="morse-ch">3</span><span class="morse-code">...--</span></div>
-            <div class="morse-item"><span class="morse-ch">4</span><span class="morse-code">....-</span></div>
-            <div class="morse-item"><span class="morse-ch">5</span><span class="morse-code">.....</span></div>
-            <div class="morse-item"><span class="morse-ch">6</span><span class="morse-code">-....</span></div>
-            <div class="morse-item"><span class="morse-ch">7</span><span class="morse-code">--...</span></div>
-            <div class="morse-item"><span class="morse-ch">8</span><span class="morse-code">---..</span></div>
-            <div class="morse-item"><span class="morse-ch">9</span><span class="morse-code">----.</span></div>
-        </div>
+        <h3>Jak to działa — pasek statusu</h3>
+        <p>Nad ramką z wyrazem pojawia się kolorowy pasek informujący o stanie:</p>
+        <ul>
+            <li><strong>📡 System nadaje wzór…</strong> (czerwony) — trwa nadawanie, słuchaj i przygotuj się.</li>
+            <li><strong>🎤 Twoja kolej — nadaj odpowiedź…</strong> (zielony) — teraz Ty nadajesz kluczem.</li>
+            <li><strong>✅ Dobrze! Następny wyraz…</strong> (pomarańczowy) — zaliczone, system zaraz przejdzie dalej.
+            </li>
+            <li><strong>❌ Błąd — powtarzam ten sam wyraz…</strong> (pomarańczowy) — system powtórzy (jeśli wybrano
+                opcję powtarzania).</li>
+        </ul>
 
-        <h3>Polskie znaki diakrytyczne</h3>
-        <div class="morse-grid">
-            <div class="morse-item"><span class="morse-ch">Ą</span><span class="morse-code">.-.-</span></div>
-            <div class="morse-item"><span class="morse-ch">Ć</span><span class="morse-code">-.-..</span></div>
-            <div class="morse-item"><span class="morse-ch">Ę</span><span class="morse-code">..-..</span></div>
-            <div class="morse-item"><span class="morse-ch">Ł</span><span class="morse-code">.-..-</span></div>
-            <div class="morse-item"><span class="morse-ch">Ń</span><span class="morse-code">--.--</span></div>
-            <div class="morse-item"><span class="morse-ch">Ó</span><span class="morse-code">---.</span></div>
-            <div class="morse-item"><span class="morse-ch">Ś</span><span class="morse-code">...-...</span></div>
-            <div class="morse-item"><span class="morse-ch">Ź</span><span class="morse-code">--..-</span></div>
-            <div class="morse-item"><span class="morse-ch">Ż</span><span class="morse-code">--..-.</span></div>
-        </div>
+        <h3>Ważne szczegóły</h3>
+        <ul>
+            <li><strong>Ukrywanie w trybie swobodnym.</strong> W trybie <em>Swobodne nadawanie</em> przycisk
+                <code>🎧 Auto-QSO</code> jest <strong>ukryty</strong> — bo nie ma wzorca do nadania (Ty nadajesz
+                dowolny tekst).
+            </li>
+            <li><strong>Pełny ekran.</strong> Przycisk <code>🎧 Auto-QSO</code> działa również w pełnym ekranie —
+                jest wyróżniony kolorem turkusowym (aktywny: czerwonym).</li>
+            <li><strong>Timeout 60 s.</strong> Jeśli po komunikacie <em>„Twoja kolej"</em> nic nie nadasz przez 60
+                sekund, system automatycznie powtórzy nadawanie wzoru.</li>
+            <li><strong>Zatrzymanie.</strong> Kliknij <span class="badge badge-err">⏹ Stop</span> lub zmień tryb
+                lekcji
+                — Auto-QSO wyłączy się natychmiast.</li>
+            <li><strong>Statystyki.</strong> Zaliczenia i błędy z Auto-QSO wliczają się do ogólnych liczników
+                <code>Zaliczone</code> / <code>Błędy</code> / <code>Skuteczność</code>.
+            </li>
+        </ul>
 
-        <h3>Interpunkcja i znaki specjalne (prosigns)</h3>
-        <div class="morse-grid">
-            <div class="morse-item"><span class="morse-ch">.</span><span class="morse-code">.-.-.-</span></div>
-            <div class="morse-item"><span class="morse-ch">,</span><span class="morse-code">--..--</span></div>
-            <div class="morse-item"><span class="morse-ch">?</span><span class="morse-code">..--..</span></div>
-            <div class="morse-item"><span class="morse-ch">/</span><span class="morse-code">-..-.</span></div>
-            <div class="morse-item"><span class="morse-ch">=</span><span class="morse-code">-...-</span></div>
-            <div class="morse-item"><span class="morse-ch">-</span><span class="morse-code">-....-</span></div>
-            <div class="morse-item"><span class="morse-ch">&lt;AR&gt;</span><span class="morse-code">.-.-.</span></div>
-            <div class="morse-item"><span class="morse-ch">&lt;KN&gt;</span><span class="morse-code">-.--.</span></div>
-            <div class="morse-item"><span class="morse-ch">&lt;SK&gt;</span><span class="morse-code">...-.-</span></div>
-            <div class="morse-item"><span class="morse-ch">&lt;KA&gt;</span><span class="morse-code">-.-.-</span></div>
+        <div class="tip">
+            <strong>Wskazówka:</strong> Auto-QSO to najlepszy sposób nauki <strong>odsłuchu</strong> (head copy).
+            Zacznij od krótkich wyrazów (<code>3 znaki</code>) i niskiego WPM (<code>15–18</code>), z włączoną opcją
+            <em>Pokazuj tekst wyrazu</em>. Gdy poczujesz się pewnie — wyłącz podpowiedź tekstu i zwiększ tempo.
         </div>
     </div>
 
-</body>
+    <!-- 🔧 NOWA SEKCJA: Skróty klawiszowe -->
+    <div class="card" id="s6">
+        <h2>6. Skróty klawiszowe i okna dialogowe</h2>
+        <p>Aplikacja używa nowoczesnych okien dialogowych (zamiast systemowych <code>confirm()</code>). Działają one
+            również z klawiatury:</p>
 
-</html>
+        <table class="keys">
+            <thead>
+                <tr>
+                    <th>Klawisz</th>
+                    <th>Działanie</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Enter</code></td>
+                    <td>Potwierdza akcję (np. <em>„Tak, zeruj"</em>, <em>„▶ Start"</em>).</td>
+                </tr>
+                <tr>
+                    <td><code>Esc</code></td>
+                    <td>Anuluje i zamyka okno (bezpieczne wyjście).</td>
+                </tr>
+                <tr>
+                    <td><code>Tab</code> / <code>Shift+Tab</code></td>
+                    <td>Przełącza między przyciskami w oknie.</td>
+                </tr>
+                <tr>
+                    <td>Klik w tło</td>
+                    <td>Zamyka okno (równoważne anulowaniu).</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Kiedy pojawia się okno potwierdzenia?</h3>
+        <ul>
+            <li><strong>🔄 Zeruj liczniki</strong> — tylko jeśli są jakieś statystyki do wyzerowania (w przeciwnym
+                razie pojawia się krótki komunikat <em>„Liczniki są już wyzerowane."</em>).</li>
+            <li><strong>Powtórz</strong> — tylko jeśli wpisano już jakiś tekst (w przeciwnym razie działa od razu).
+            </li>
+            <li><strong>Wczytanie pliku z polskimi literami lub kropkami/przecinkami</strong> — pyta, czy zamienić /
+                usunąć znaki przed ćwiczeniem.</li>
+        </ul>
+        <p>Domyślnie fokus ustawiony jest na przycisku <strong>Anuluj</strong> — przypadkowe <code>Enter</code> nie
+            skasuje statystyk.</p>
+    </div>
+
+    <!-- 🔧 NOWA SEKCJA: Rozwiązywanie problemów -->
+    <div class="card" id="s7">
+        <h2>7. Rozwiązywanie problemów</h2>
+
+        <div class="faq-q">Nie słyszę dźwięku (sidetone).</div>
+        <div class="faq-a">Kliknij czerwony przycisk <span class="badge badge-err">🔇 Włącz dźwięk</span> na górze
+            strony. Przeglądarki wymagają interakcji użytkownika, żeby odblokować audio. Sprawdź też suwak
+            <em>Głośność</em> w <code>⚙ Ustawienia</code> oraz głośność systemową.
+        </div>
+
+        <div class="faq-q">MIDI nie wykrywa dongla.</div>
+        <div class="faq-a">Sprawdź, czy dongle jest podłączony <strong>przed</strong> otwarciem strony (lub odśwież
+            stronę po podłączeniu). Upewnij się, że używasz Chrome / Edge / Opery (Firefox i Safari nie obsługują
+            Web MIDI). W <code>⚙ Ustawienia</code> sprawdź, czy w polach <em>Wejście</em> i <em>Wyjście</em> widać
+            nazwę dongla.</div>
+
+        <div class="faq-q">Dekoder nie rozpoznaje liter — same <code>¤</code>.</div>
+        <div class="faq-a">Najczęściej to zbyt wolne lub zbyt szybkie tempo nadawania względem ustawionego WPM.
+            Zwiększ lub zmniejsz suwak <em>WPM</em> albo poluzuj <em>Przerwę między literami</em> (np. na
+            <code>4.0x dit</code>). Sprawdź też, czy w <code>⚙ Ustawienia</code> wybrany jest właściwy tryb dongla
+            (Iambic A/B, Ultimatic, Bug, Straight Key).
+        </div>
+
+        <div class="faq-q">Przycisk <code>🎧 Auto-QSO</code> nie reaguje.</div>
+        <div class="faq-a">Sprawdź, czy nie jesteś w trybie <em>Swobodne nadawanie</em> — w tym trybie przycisk jest
+            ukryty (bo nie ma wzorca do nadania). Zmień tryb lekcji na inny (np. <em>Znaki wywoławcze</em>), a
+            przycisk wróci.</div>
+
+        <div class="faq-q">W Auto-QSO nic nie słyszę, tylko widzę „📡 System nadaje wzór…".</div>
+        <div class="faq-a">Kliknij <span class="badge badge-err">🔇 Włącz dźwięk</span> na górze strony. Auto-QSO
+            wymaga odblokowanego audio (przeglądarka blokuje dźwięk do pierwszego kliknięcia).</div>
+
+        <div class="faq-q">W Auto-QSO system czeka, a ja nie wiem, co nadawać.</div>
+        <div class="faq-a">Włącz opcję <strong>Pokazuj tekst wyrazu</strong> w okienku startowym Auto-QSO —
+            zobaczysz tekst do nadania. Domyślnie jest wyłączona, żeby ćwiczyć odsłuch.</div>
+
+        <div class="faq-q">Przycisk <code>⛶ Pełny ekran</code> nie działa na iPhone.</div>
+        <div class="faq-a">Safari na iOS nie wspiera Fullscreen API dla elementów HTML. Przycisk zadziała na
+            Chrome/Edge/Opera na desktopie i Androidzie. Na iPhone pozostaje tryb <code>focus-mode</code> (bez
+            systemowego fullscreen) — ekran i tak jest „czysty".</div>
+
+        <div class="faq-q">Dźwięk przycicha po pierwszej kropce (telefon).</div>
+        <div class="faq-a">To systemowy limiter głośności głośnika telefonu. Zmniejsz suwak <em>Głośność</em> w
+            aplikacji do ok. <code>30–35%</code> i podgłośnij telefon przyciskami bocznymi. Albo użyj słuchawek.
+        </div>
+
+        <div class="faq-q">Zniknęły statystyki / ustawienia.</div>
+        <div class="faq-a">Statystyki (<code>Zaliczone</code> / <code>Błędy</code>) resetują się po odświeżeniu
+            strony — nie są zapisywane. Ustawienia (WPM, głośność, ton, tryb dongla, dane stacji) <strong>są
+                zapisywane</strong> w <code>localStorage</code> i wracają po odświeżeniu. Jeśli zniknęły — sprawdź,
+            czy przeglądarka nie czyści danych witryny przy zamykaniu.</div>
+    </div>
