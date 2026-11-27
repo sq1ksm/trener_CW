@@ -177,9 +177,11 @@ function refreshPorts() {
     if (inputs.length === 0 && outputs.length === 0) {
         statusEl.textContent = "Brak urządzeń MIDI (wejść: 0, wyjść: 0) — podłącz klucz / dongle USB.";
         statusEl.style.color = "#f87171"; // czerwony
+        statusEl.classList.add("status-error");
     } else {
         statusEl.textContent = `Gotowy. Wykryto wejść: ${inputs.length}, wyjść: ${outputs.length}.`;
         statusEl.style.color = ""; // przywraca domyślny kolor z style.css (np. zielonkawy/szary)
+        statusEl.classList.remove("status-error");
     }
 
     bindPorts();

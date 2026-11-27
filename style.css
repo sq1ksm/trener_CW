@@ -127,11 +127,36 @@ button.active-mode {
     margin: 0 0 .6rem 0;
 }
 
+.status.status-error {
+    color: #f87171;
+    font-weight: 700;
+}
+
 .row {
     display: flex;
     gap: .7rem;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.lesson-settings {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    margin-bottom: .6rem;
+}
+
+.lesson-main-settings,
+.lesson-extra-settings {
+    align-items: center;
+}
+
+.lesson-main-settings label {
+    margin: .25rem 0;
+}
+
+.lesson-extra-settings {
+    flex-wrap: wrap;
 }
 
 .thresholds {
@@ -203,6 +228,12 @@ button.active-mode {
     font-size: clamp(1.35rem, 3.2vw, 2.1rem);
 }
 
+.lesson-grid.receive-mode {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
 .qso-pair {
     display: inline-flex;
     flex-direction: column;
@@ -241,6 +272,34 @@ button.active-mode {
     margin-top: .4rem;
 }
 
+.receive-answer-row {
+    justify-content: center;
+    align-items: center;
+    gap: .5rem;
+    margin: .4rem 0 0;
+    flex-shrink: 0;
+}
+
+.receive-answer-row input {
+    width: min(18rem, 70vw);
+    padding: .55rem .7rem;
+    border: 1px solid #2a2f38;
+    border-radius: 5px;
+    background: #0d0f12;
+    color: #e6e6e6;
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+}
+
+.receive-good-btn {
+    background: #00a896;
+    color: #001513;
+    border: 1px solid #00d1b2;
+    border-radius: 6px;
+    padding: .5rem .8rem;
+    font-weight: 700;
+}
+
 .lesson-stats {
     font-size: .95rem;
     color: #7fd1b9;
@@ -274,10 +333,9 @@ body.focus-mode {
 }
 
 body.focus-mode .topbar,
-body.focus-mode #status,
 body.focus-mode #settings-drawer,
 body.focus-mode #lesson-legend,
-body.focus-mode fieldset>.row:first-of-type {
+body.focus-mode .lesson-settings {
     display: none !important;
 }
 
@@ -292,14 +350,14 @@ body.focus-mode fieldset {
     flex-direction: column;
 }
 
-body.focus-mode fieldset>.row:nth-of-type(2) {
+body.focus-mode .lesson-action-buttons {
     justify-content: center;
     gap: .4rem;
     margin-bottom: .4rem !important;
     flex-shrink: 0;
 }
 
-body.focus-mode fieldset>.row:nth-of-type(2) button {
+body.focus-mode .lesson-action-buttons button {
     padding: .35rem .6rem;
     font-size: .82rem;
 }
@@ -373,6 +431,13 @@ body.focus-mode #toggle-auto-btn.danger-btn {
     text-align: center;
     transform: translateY(10px) scale(0.97);
     transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.receive-countdown-box .confirm-msg {
+    margin-bottom: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #7fd1b9;
 }
 
 .confirm-overlay.open .confirm-box {

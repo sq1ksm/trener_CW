@@ -8,7 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Trener Telegrafii CW (MIDI) by SQ1KSM v3</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 
 <body>
@@ -177,12 +177,14 @@
                     if (statusEl) {
                         statusEl.textContent = "Błąd Web MIDI: wymagane połączenie HTTPS.";
                         statusEl.style.color = "#f87171";
+                        statusEl.classList.add("status-error");
                     }
                 } else {
                     // Przeglądarka nie obsługuje Web MIDI (np. Firefox, Safari, przeglądarki na iOS)
                     if (statusEl) {
                         statusEl.textContent = "Brak obsługi Web MIDI w tej przeglądarce (tryb bez klucza USB).";
                         statusEl.style.color = "#f87171";
+                        statusEl.classList.add("status-error");
                     }
                 }
 
@@ -322,8 +324,15 @@
 
     <fieldset>
         <legend id="lesson-legend">Lekcja telegrafii — grupy znaków / znaki wywoławcze</legend>
-        <div class="row" style="margin-bottom:.6rem;">
-            <div class="row" style="flex-wrap:nowrap;">
+        <div class="lesson-settings">
+            <div class="row lesson-main-settings">
+                <label>Kierunek:
+                    <select id="lesson-direction">
+                        <option value="send" selected>Nadawanie — ćwiczenie kluczem</option>
+                        <option value="receive">Odbiór — potwierdź poprawność</option>
+                    </select>
+                </label>
+
                 <label>Tryb:
                     <select id="lesson-type">
                         <option value="koch">Metoda Kocha</option>
@@ -335,7 +344,9 @@
                         <option value="file">Własny plik</option>
                     </select>
                 </label>
+            </div>
 
+            <div class="row lesson-extra-settings">
                 <label id="lesson-len-wrap">Długość:
                     <select id="lesson-len">
                         <option value="1">1 znak (bardzo łatwy)</option>
@@ -404,7 +415,7 @@
             </div>
         </div>
 
-        <div class="row" style="margin-bottom:.6rem; justify-content: center;">
+        <div class="row lesson-action-buttons" style="margin-bottom:.6rem; justify-content: center;">
 
             <button id="toggle-auto-btn" class="nav-btn">🎧 Auto-QSO</button>
             <button id="lesson-next-btn" class="force-btn">Następny</button>
@@ -416,6 +427,10 @@
 
         <div class="lesson-box" id="lesson-box">
             <div class="lesson-grid" id="lesson-grid"></div>
+            <div id="receive-answer-row" class="row receive-answer-row" style="display:none;">
+                <button id="receive-good-btn" type="button" class="receive-good-btn">✓ Dobrze (Enter)</button>
+                <button id="receive-bad-btn" type="button" class="danger-btn">✕ Źle</button>
+            </div>
             <div class="lesson-msg" id="lesson-msg"></div>
             <div class="lesson-stats" id="lesson-stats">Zaliczone: 0 | Błędy: 0</div>
         </div>
@@ -431,6 +446,15 @@
                 <button type="button" class="confirm-btn cancel" id="confirm-cancel">Anuluj</button>
                 <button type="button" class="confirm-btn ok" id="confirm-ok">Tak, potwierdzam</button>
             </div>
+        </div>
+    </div>
+
+    <div id="receive-countdown-modal" class="confirm-overlay" aria-hidden="true">
+        <div class="confirm-box receive-countdown-box" role="dialog" aria-modal="true"
+            aria-labelledby="receive-countdown-title" aria-live="assertive">
+            <div class="confirm-icon">🎧</div>
+            <h2 class="confirm-title" id="receive-countdown-title">Przygotuj się do odbioru</h2>
+            <p class="confirm-msg" id="receive-countdown-value">Odsłuch za 5</p>
         </div>
     </div>
 
@@ -468,9 +492,9 @@
     </div>
 
     <script src="morse.js?v=5"></script>
-    <script src="lessons.js?v=15"></script>
-    <script src="midi.js?v=4"></script>
-    <script src="app.js?v=6"></script>
+    <script src="lessons.js?v=20"></script>
+    <script src="midi.js?v=5"></script>
+    <script src="app.js?v=7"></script>
 </body>
 
 </html>

@@ -123,9 +123,15 @@ if (navigator.requestMIDIAccess) {
         midiAccess = access;
         refreshPorts();
         midiAccess.onstatechange = refreshPorts;
-    }).catch(err => statusEl.textContent = "Błąd Web MIDI: " + err.message);
+    }).catch(err => {
+        statusEl.textContent = "Błąd Web MIDI: " + err.message;
+        statusEl.style.color = "#f87171";
+        statusEl.classList.add("status-error");
+    });
 } else {
     statusEl.textContent = "Brak obsługi Web MIDI API w tej przeglądarce.";
+    statusEl.style.color = "#f87171";
+    statusEl.classList.add("status-error");
 }
 
 window.addEventListener("beforeunload", () => {

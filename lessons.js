@@ -4,6 +4,10 @@ const myQthInput = document.getElementById("my-qth-input");
 const myLocatorInput = document.getElementById("my-locator-input");
 
 const lessonType = document.getElementById("lesson-type"), lessonLen = document.getElementById("lesson-len"), lessonLenWrap = document.getElementById("lesson-len-wrap");
+const lessonDirection = document.getElementById("lesson-direction");
+const receiveAnswerRow = document.getElementById("receive-answer-row");
+const receiveGoodBtn = document.getElementById("receive-good-btn");
+const receiveBadBtn = document.getElementById("receive-bad-btn");
 const callsignSuffixWrap = document.getElementById("callsign-suffix-wrap"), callsignSuffix = document.getElementById("callsign-suffix");
 const fileControls = document.getElementById("file-controls"), fileUploadBtn = document.getElementById("file-upload-btn"), filePasteBtn = document.getElementById("file-paste-btn"), fileInput = document.getElementById("lesson-file-input");
 const fileOrder = document.getElementById("file-order"), fileInfo = document.getElementById("file-info"), lessonLegend = document.getElementById("lesson-legend");
@@ -22,6 +26,8 @@ const kochScope = document.getElementById("koch-scope");
 
 let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, isPlayingDemo = false, demoAbort = false;
 let customWords = new Array(), customWordIdx = 0;
+let receiveChecked = false, receivePlaybackDone = false;
+let receiveCountdownShown = false, receiveCountdownPromise = null;
 
 /* ============================================================
    AUTO-QSO — zmienne stanu (muszą być na początku, bo funkcje niżej ich używają)
@@ -153,6 +159,7 @@ function parseCustomFile(text, convertPl, removePunct) {
 function updateLessonControlsUI() {
     const mode = lessonType.value;
     const isFile = mode === "file", isQso = mode === "qso", isKoch = mode === "koch", isFree = mode === "free", isCallsign = mode === "callsign";
+    const isReceive = lessonDirection && lessonDirection.value === "receive";
 
     if (lessonLen) {
         const prevVal = lessonLen.value;
@@ -170,6 +177,11 @@ function updateLessonControlsUI() {
     if (callsignSuffixWrap) callsignSuffixWrap.style.display = isCallsign ? "flex" : "none";
     fileControls.style.display = isFile ? "flex" : "none";
     if (kochControls) kochControls.style.display = isKoch ? "flex" : "none";
+    if (receiveAnswerRow) receiveAnswerRow.style.display = isReceive ? "flex" : "none";
+    if (receiveAnswerRow) {
+        const showButtons = isReceive && receivePlaybackDone && !receiveChecked;
+        receiveAnswerRow.style.display = showButtons ? "flex" : "none";
+    }
 
     if (isFree) lessonLegend.textContent = "Swobodne nadawanie — dekoder CW na żywo";
     else if (isFile) lessonLegend.textContent = "Lekcja telegrafii — własna lista z pliku";
@@ -348,7 +360,31 @@ function flashBox(cls) {
 function fmtChar(ch) { return ch === "0" ? "Ø" : ch; }
 
 function renderLesson() {
+    if (lessonDirection && lessonDirection.value === "receive") {
+        lessonGridEl.classList.remove("qso-mode");
+        lessonGridEl.classList.add("receive-mode");
+        lessonGridEl.style.removeProperty("--cols");
+        lessonGridEl.innerHTML = "";
+        if (receivePlaybackDone || receiveChecked) {
+            const label = document.createElement("div");
+            label.textContent = targetWord;
+            label.style.color = lessonMsgEl.style.color || "#e6e6e6";
+            lessonGridEl.appendChild(label);
+        } else {
+            const label = document.createElement("div");
+            label.textContent = "🔊 Odsłuchaj wzór";
+            label.style.fontSize = "1.25rem";
+            label.style.color = "#9aa3b0";
+            lessonGridEl.appendChild(label);
+        }
+        const total = passedCount + errorCount;
+        const percent = total === 0 ? 0 : Math.round((passedCount / total) * 100);
+        lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${percent}%`;
+        return;
+    }
+
     if (lessonType.value === "free") {
+        lessonGridEl.classList.remove("receive-mode");
         lessonGridEl.classList.add("qso-mode");
         lessonGridEl.style.removeProperty("--cols");
         lessonGridEl.innerHTML = "";
@@ -369,6 +405,7 @@ function renderLesson() {
         return;
     }
 
+    lessonGridEl.classList.remove("receive-mode");
     const targetTokens = tokenizeWord(targetWord), typedTokens = tokenizeWord(typedWord);
     const hasSpaces = targetTokens.includes(" ");
     lessonGridEl.innerHTML = "";
@@ -411,6 +448,30 @@ function renderLesson() {
     lessonStatsEl.textContent = `Zaliczone: ${passedCount} | Błędy: ${errorCount} | Skuteczność: ${percent}%`;
 }
 
+function confirmReceiveAnswer(correct) {
+    if (!lessonDirection || lessonDirection.value !== "receive" ||
+        !receivePlaybackDone || receiveChecked) return;
+    receiveChecked = true;
+    if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
+    if (correct) {
+        passedCount++;
+        flashBox("flash-ok");
+        if (typeof playFeedback === "function") playFeedback(true);
+        lessonMsgEl.style.color = "#00e676";
+        lessonMsgEl.textContent = `Dobrze: ${targetWord}`;
+    } else {
+        errorCount++;
+        flashBox("flash-err");
+        if (typeof playFeedback === "function") playFeedback(false);
+        lessonMsgEl.style.color = "#ff5252";
+        lessonMsgEl.textContent = `Źle: ${targetWord}`;
+    }
+    renderLesson();
+    setTimeout(() => {
+        if (lessonDirection && lessonDirection.value === "receive") nextLessonWord();
+    }, 900);
+}
+
 function triggerLessonFail(msg, reason) {
     clearTimeout(lessonGapTimer);
     if (typeof playFeedback === "function") playFeedback(false);
@@ -433,16 +494,28 @@ function stopDemoWord() {
     }
 }
 
-function nextLessonWord() {
+function nextLessonWord(restartReceiveCountdown = false) {
     stopDemoWord(); clearTimeout(lessonGapTimer);
     lessonMsgEl.style.color = "";
     targetWord = generateLessonWord(); typedWord = ""; symbolBuf = "";
+    if (restartReceiveCountdown) receiveCountdownShown = false;
+    receiveChecked = false;
+    receivePlaybackDone = false;
+    if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
+    updateLessonControlsUI();
     renderLesson();
+    if (lessonDirection && lessonDirection.value === "receive") {
+        setTimeout(() => {
+            if (!receiveChecked && targetWord) playDemoWord();
+        }, 350);
+    }
     // 🔧 AUTO-QSO: po nowym wyrazie nadaj wzór
     if (autoQsoActive && !autoQsoGenerating) autoQsoTxAndWait();
 }
 
 function checkLessonLetter(letter) {
+    if (lessonDirection && lessonDirection.value === "receive") return;
+
     // 1. Tryb swobodny (free)
     if (lessonType.value === "free") {
         typedWord += letter;
@@ -555,9 +628,36 @@ function checkLessonLetter(letter) {
 }
 
 async function playDemoWord() {
-    if (isPlayingDemo) { stopDemoWord(); return; }
+    if (isPlayingDemo) {
+        if (lessonDirection && lessonDirection.value === "receive") receiveCountdownShown = false;
+        stopDemoWord();
+        return;
+    }
     const textToPlay = lessonType.value === "free" ? typedWord : targetWord;
     if (!textToPlay) return;
+
+    if (lessonDirection && lessonDirection.value === "receive" && !receiveCountdownShown) {
+        if (receiveCountdownPromise) return;
+        demoAbort = false;
+        receiveCountdownShown = true;
+        receiveCountdownPromise = (async () => {
+            const overlay = document.getElementById("receive-countdown-modal");
+            const countdownValue = document.getElementById("receive-countdown-value");
+            if (overlay && countdownValue) {
+                overlay.classList.add("open");
+                overlay.setAttribute("aria-hidden", "false");
+                for (let seconds = 5; seconds > 0; seconds--) {
+                    countdownValue.textContent = `Odsłuch za ${seconds}`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                overlay.classList.remove("open");
+                overlay.setAttribute("aria-hidden", "true");
+            }
+        })();
+        await receiveCountdownPromise;
+        receiveCountdownPromise = null;
+        if (lessonDirection.value !== "receive" || demoAbort) return;
+    }
 
     isPlayingDemo = true; demoAbort = false; initAudio();
     if (playDemoBtn) {
@@ -580,11 +680,17 @@ async function playDemoWord() {
         if (demoAbort) break;
         await sleep(d * (charGapMult - 1));
     }
+    if (!demoAbort && lessonDirection && lessonDirection.value === "receive") {
+        receivePlaybackDone = true;
+        updateLessonControlsUI();
+        renderLesson();
+    }
     stopDemoWord();
 }
 
 function syncFreeModeButtons() {
     const isFree = lessonType.value === "free";
+    const isReceive = lessonDirection && lessonDirection.value === "receive";
     const nextBtn = document.getElementById("lesson-next-btn");
     const resetBtn = document.getElementById("lesson-reset-btn");
     const statsResetBtn = document.getElementById("stats-reset-btn");
@@ -594,7 +700,7 @@ function syncFreeModeButtons() {
     if (statsResetBtn) statsResetBtn.style.display = isFree ? "none" : "inline-block";
     if (autoBtn) {
         // 🔧 Auto-QSO nie ma sensu w trybie swobodnym (brak wzoru do nadania)
-        autoBtn.style.display = isFree ? "none" : "inline-block";
+        autoBtn.style.display = (isFree || isReceive) ? "none" : "inline-block";
         // Jeśli Auto-QSO było aktywne, a przechodzimy do free — wyłącz je
         if (isFree && autoQsoActive) setAutoQsoMode(false);
     }
@@ -794,15 +900,34 @@ if (statsResetBtn) {
     });
 }
 
-lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(); });
-lessonLen.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
-if (callsignSuffix) callsignSuffix.addEventListener("change", () => { lessonMsgEl.textContent = ""; nextLessonWord(); });
-fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.textContent = ""; nextLessonWord(); });
-if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
-if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(); });
-document.getElementById("lesson-next-btn").addEventListener("click", () => { lessonMsgEl.textContent = ""; nextLessonWord(); });
+lessonType.addEventListener("change", () => { updateLessonControlsUI(); syncFreeModeButtons(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+if (lessonDirection) lessonDirection.addEventListener("change", () => {
+    updateLessonControlsUI();
+    syncFreeModeButtons();
+    lessonMsgEl.textContent = "";
+    nextLessonWord(true);
+});
+lessonLen.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+if (callsignSuffix) callsignSuffix.addEventListener("change", () => { lessonMsgEl.textContent = ""; nextLessonWord(true); });
+fileOrder.addEventListener("change", () => { customWordIdx = 0; lessonMsgEl.textContent = ""; nextLessonWord(true); });
+if (kochStage) kochStage.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+if (kochScope) kochScope.addEventListener("change", () => { updateLessonControlsUI(); lessonMsgEl.textContent = ""; nextLessonWord(true); });
+document.getElementById("lesson-next-btn").addEventListener("click", () => { lessonMsgEl.textContent = ""; nextLessonWord(true); });
 
 document.getElementById("lesson-reset-btn").addEventListener("click", async () => {
+    if (lessonDirection && lessonDirection.value === "receive") {
+        receiveCountdownShown = false;
+        stopDemoWord(); clearTimeout(lessonGapTimer);
+        lessonMsgEl.style.color = "";
+        lessonMsgEl.textContent = "";
+        receiveChecked = false;
+        receivePlaybackDone = false;
+        if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
+        renderLesson();
+        setTimeout(() => playDemoWord(), 350);
+        return;
+    }
+
     if (typedWord.length === 0) {
         stopDemoWord(); clearTimeout(lessonGapTimer);
         lessonMsgEl.style.color = "";
@@ -825,8 +950,23 @@ document.getElementById("lesson-reset-btn").addEventListener("click", async () =
     stopDemoWord(); clearTimeout(lessonGapTimer);
     lessonMsgEl.style.color = "";
     typedWord = ""; symbolBuf = ""; lessonMsgEl.textContent = "";
+    receiveChecked = false;
+    receivePlaybackDone = false;
+    if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
     renderLesson();
+    if (lessonDirection && lessonDirection.value === "receive") setTimeout(() => playDemoWord(), 350);
 });
 
 if (playDemoBtn) playDemoBtn.addEventListener("click", playDemoWord);
+if (receiveGoodBtn) receiveGoodBtn.addEventListener("click", () => confirmReceiveAnswer(true));
+if (receiveBadBtn) receiveBadBtn.addEventListener("click", () => confirmReceiveAnswer(false));
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" &&
+        lessonDirection && lessonDirection.value === "receive" &&
+        receivePlaybackDone && !receiveChecked) {
+        event.preventDefault();
+        confirmReceiveAnswer(true);
+    }
+});
+updateLessonControlsUI();
 syncFreeModeButtons();
