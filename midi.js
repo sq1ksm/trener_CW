@@ -4,9 +4,11 @@ let keyDownAt = 0, isDown = false, charTimer = null;
 const statusEl = document.getElementById("status"), inSel = document.getElementById("midi-in"), outSel = document.getElementById("midi-out");
 const chSel = document.getElementById("midi-ch"), noteDitEl = document.getElementById("note-dit"), noteDahEl = document.getElementById("note-dah"), anyNoteEl = document.getElementById("any-note");
 const wpmOut = document.getElementById("wpm-out"), quickWpmBadge = document.getElementById("quick-wpm-badge"), syncCheck = document.getElementById("sync-decoder");
+const syncPlaybackCheck = document.getElementById("sync-playback");
 const charGapSlider = document.getElementById("char-gap-slider"), charGapOut = document.getElementById("char-gap-out");
 const maxGapRow = document.getElementById("max-gap-row"), maxGapSlider = document.getElementById("max-gap-slider"), maxGapOut = document.getElementById("max-gap-out");
 const manualRxBox = document.getElementById("manual-rx-box"), rxWpmSlider = document.getElementById("rx-wpm-slider"), rxWpmOut = document.getElementById("rx-wpm-out");
+const manualPlaybackWpmBox = document.getElementById("manual-playback-wpm-box");
 const threshInfo = document.getElementById("thresholds-info"), logEl = document.getElementById("log");
 
 function addLog(msg, isCC = false) {
@@ -22,7 +24,7 @@ function updateTiming() {
     ditMs = Math.round(1200 / activeRx);
     const charMs = Math.round(ditMs * charGapMult);
     const maxMs = Math.round(ditMs * maxGapMult);
-    threshInfo.textContent = `dit: ${ditMs} ms | kreska ≥ ${Math.round(ditMs * 2.0)} ms | litera po ${charMs} ms | limit pauzy: ${maxMs} ms`;
+    threshInfo.textContent = `dit: ${ditMs} ms | kreska ≥ ${Math.round(ditMs * 2.0)} ms | zatwierdzenie litery najpóźniej po ${charMs} ms | limit pauzy: ${maxMs} ms`;
 }
 
 charGapSlider.addEventListener("input", () => {
@@ -60,7 +62,12 @@ maxGapSlider.addEventListener("input", () => {
 
 function sendDongleWpm(wpm) {
     txWpm = wpm; wpmOut.textContent = `${wpm} WPM`; quickWpmBadge.textContent = `${wpm} WPM`;
-    if (syncCheck.checked) { rxWpm = wpm; rxWpmSlider.value = wpm; rxWpmOut.textContent = `${wpm} WPM`; }
+    if (syncCheck.checked) {
+        rxWpm = wpm; rxWpmSlider.value = wpm; rxWpmOut.textContent = `${wpm} WPM`;
+    }
+    if (syncPlaybackCheck.checked) {
+        playbackWpmSlider.value = wpm; playbackWpmOut.textContent = `${wpm} WPM`;
+    }
     updateTiming();
     if (currentOut) {
         const txDit = Math.round(1200 / wpm);
@@ -72,10 +79,28 @@ function sendDongleWpm(wpm) {
 
 wpmSlider.addEventListener("input", () => sendDongleWpm(Number(wpmSlider.value)));
 syncCheck.addEventListener("change", () => {
-    manualRxBox.style.display = syncCheck.checked ? "none" : "block";
-    if (syncCheck.checked) { rxWpm = txWpm; rxWpmSlider.value = txWpm; rxWpmOut.textContent = `${txWpm} WPM`; }
-    updateTiming();
+    updateWpmSyncControls();
+    saveSettings();
 });
+syncPlaybackCheck.addEventListener("change", () => {
+    updatePlaybackWpmSyncControls();
+    saveSettings();
+});
+
+function updateWpmSyncControls() {
+    manualRxBox.style.display = syncCheck.checked ? "none" : "block";
+    if (syncCheck.checked) {
+        rxWpm = txWpm; rxWpmSlider.value = txWpm; rxWpmOut.textContent = `${txWpm} WPM`;
+    }
+    updateTiming();
+}
+
+function updatePlaybackWpmSyncControls() {
+    manualPlaybackWpmBox.style.display = syncPlaybackCheck.checked ? "none" : "block";
+    if (syncPlaybackCheck.checked) {
+        playbackWpmSlider.value = txWpm; playbackWpmOut.textContent = `${txWpm} WPM`;
+    }
+}
 rxWpmSlider.addEventListener("input", () => { rxWpm = Number(rxWpmSlider.value); rxWpmOut.textContent = `${rxWpm} WPM`; updateTiming(); });
 
 document.querySelectorAll(".mode-btn").forEach(btn => {
@@ -95,15 +120,21 @@ function commitChar() {
 }
 
 let lastKeyUpAt = 0;
+const standardCharGapMult = 3.0;
 
 function onKeyDown() {
     if (isDown) return;
     if (isPlayingDemo) stopDemoWord();
-    isDown = true; toneOn();
+    const now = performance.now();
+    const gapSinceLastKeyUp = now - lastKeyUpAt;
     clearTimeout(charTimer); clearTimeout(lessonGapTimer);
-    const wordGapMult = Math.max(6.5, charGapMult + 2.5);
+    if (symbolBuf && lastKeyUpAt > 0 && gapSinceLastKeyUp >= ditMs * standardCharGapMult) {
+        commitChar();
+    }
+    isDown = true; toneOn();
+    const wordGapMult = 6.5;
     if (typeof lessonType !== "undefined" && lessonType.value === "free" && lastKeyUpAt > 0 && typedWord.length > 0 && !typedWord.endsWith(" ")) {
-        if (performance.now() - lastKeyUpAt >= ditMs * wordGapMult) typedWord += " ";
+        if (gapSinceLastKeyUp >= ditMs * wordGapMult) typedWord += " ";
     }
     keyDownAt = performance.now();
 }

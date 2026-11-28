@@ -4,6 +4,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#14161a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Trener CW" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -120,6 +126,7 @@
     <div class="topbar">
         <h1>Trener Telegrafii CW by SQ1KSM</h1>
         <div class="row">
+            <button id="install-app-btn" class="install-btn" type="button" hidden>⬇ Zainstaluj aplikację</button>
             <button id="unlock-audio-btn" class="danger-btn">🔇 Włącz dźwięk</button>
             <span id="quick-wpm-badge" style="color:#7fd1b9; font-weight:bold; font-size:.95rem;">20 WPM</span>
             <a href="pomoc.html" target="_blank" style="text-decoration:none;"><button type="button" class="nav-btn">❓
@@ -240,21 +247,23 @@
                     </select>
                 </label>
             </div>
-            <div class="row" style="align-items: center; gap: 16px;">
+            <div class="row">
                 <label class="checkbox-label"
                     style="margin: 0; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="any-note"> Akceptuj każdą nutę
+                    <input type="checkbox" id="any-note"> Akceptuj dowolną nutę MIDI
                 </label>
+            </div>
+            <div class="row" style="margin-top:.4rem;">
                 <span id="note-selectors"
-                    style="display: inline-flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid #2d3748; border-radius: 6px; padding: 4px 10px;">
+                    style="display: inline-flex; align-items: center; gap: 12px; flex-wrap:wrap; background: rgba(0, 0, 0, 0.25); border: 1px solid #2d3748; border-radius: 6px; padding: 4px 10px;">
                     <span
-                        style="font-size: 0.85em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Nuty:</span>
+                        style="font-size: 0.85em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Mapowanie klucza:</span>
                     <label style="display: inline-flex; align-items: center; gap: 5px; margin: 0;">
-                        Lewa (DIT) <input type="number" id="note-dit" min="0" max="127" value="1"
+                        DIT — lewa <input type="number" id="note-dit" min="0" max="127" value="1"
                             style="width: 48px; text-align: center; padding: 2px 4px;">
                     </label>
                     <label style="display: inline-flex; align-items: center; gap: 5px; margin: 0;">
-                        Prawa (DAH) <input type="number" id="note-dah" min="0" max="127" value="2"
+                        DAH — prawa <input type="number" id="note-dah" min="0" max="127" value="2"
                             style="width: 48px; text-align: center; padding: 2px 4px;">
                     </label>
                 </span>
@@ -277,7 +286,7 @@
                 <input id="wpm-slider" type="range" min="5" max="45" value="20">
                 <output id="wpm-out">20 WPM</output>
             </label>
-            <label>Przerwa między literami (poszerzenie):
+            <label>Maks. przerwa między literami (tolerancja dekodera):
                 <input id="char-gap-slider" type="range" min="2.5" max="7.0" step="0.5" value="3.0">
                 <output id="char-gap-out">3.0x dit</output>
             </label>
@@ -288,13 +297,27 @@
                 <input id="max-gap-slider" type="range" min="5" max="25" step="1" value="7">
                 <output id="max-gap-out">7x dit</output>
             </label>
-            <label style="margin-top:.6rem;">
-                <input id="sound-feedback-check" type="checkbox">
-                Dźwięk potwierdzenia (krótki sygnał po nadaniu słowa)
-            </label>
-            <label style="margin-top:.6rem;">
-                <input id="soft-error-check" type="checkbox" checked>
-                Łagodny tryb błędów: nie przerywaj od razu — czekaj na dłuższą pauzę
+            <div class="row" style="margin-top:.6rem;">
+                <label style="margin:.25rem 0;">
+                    <input id="sound-feedback-check" type="checkbox">
+                    Dźwięk potwierdzenia
+                </label>
+                <label style="margin:.25rem 0;">
+                    <input id="soft-error-check" type="checkbox" checked>
+                    Łagodny tryb błędów: nie przerywaj od razu
+                </label>
+                <label style="margin:.25rem 0;" title="Dotyczy trybu Nadawanie; po wskazanej liczbie błędów przy tym samym zadaniu przejdź dalej.">
+                    <input id="skip-after-three-errors-check" type="checkbox">
+                    Automatycznie przejdź dalej po błędach (Nadawanie)
+                </label>
+                <label id="skip-after-errors-row" style="display:none; margin:.25rem 0; flex:1; min-width:220px;">
+                    <input id="skip-after-errors-slider" type="range" min="1" max="10" step="1" value="3">
+                    <output id="skip-after-errors-out">3 błędy</output>
+                </label>
+            </div>
+            <label style="margin-top:.25rem;">Opóźnienie odpowiedzi i tekstu w trybie Odbiór:
+                <input id="receive-reveal-delay-slider" type="range" min="0" max="15" step="1" value="0">
+                <output id="receive-reveal-delay-out">0 s</output>
             </label>
             <div class="row" style="margin-top:.5rem;">
                 <span>Tryb Dongla:</span>
@@ -305,12 +328,21 @@
                 <button class="mode-btn" data-prog="1">Straight Key</button>
             </div>
             <label style="margin-top:.7rem;">
-                <input id="sync-decoder" type="checkbox" checked> Synchronizuj dekoder z WPM
+                <input id="sync-decoder" type="checkbox" checked> Synchronizuj dekoder z WPM nadawania
             </label>
             <div id="manual-rx-box" style="display:none;">
                 <label>Osobne WPM dekodera:
                     <input id="rx-wpm-slider" type="range" min="5" max="45" value="20">
                     <output id="rx-wpm-out">20 WPM</output>
+                </label>
+            </div>
+            <label style="margin-top:.7rem;">
+                <input id="sync-playback" type="checkbox" checked> Synchronizuj odtwarzanie z WPM nadawania
+            </label>
+            <div id="manual-playback-wpm-box" style="display:none;">
+                <label>Osobne WPM odtwarzania:
+                    <input id="playback-wpm-slider" type="range" min="5" max="45" value="20">
+                    <output id="playback-wpm-out">20 WPM</output>
                 </label>
             </div>
             <div class="thresholds" id="thresholds-info">dit: 60 ms | litera po 180 ms | limit pauzy: 600 ms</div>
@@ -326,7 +358,7 @@
         <legend id="lesson-legend">Lekcja telegrafii — grupy znaków / znaki wywoławcze</legend>
         <div class="lesson-settings">
             <div class="row lesson-main-settings">
-                <label>Kierunek:
+                <label>Tryb:
                     <select id="lesson-direction">
                         <option value="send" selected>Nadawanie</option>
                         <option value="receive">Odbiór</option>
@@ -337,6 +369,7 @@
                     <select id="lesson-type">
                         <option value="koch">Metoda Kocha</option>
                         <option value="letters">Tylko litery</option>
+                        <option value="digits">Tylko cyfry</option>
                         <option value="mixed">Losowe znaki</option>
                         <option value="callsign" selected>Znaki wywoławcze</option>
                         <option value="qso">Krótkie łączności</option>
@@ -498,10 +531,10 @@
         </div>
     </div>
 
-    <script src="morse.js?v=5"></script>
-    <script src="lessons.js?v=24"></script>
-    <script src="midi.js?v=6"></script>
-    <script src="app.js?v=11"></script>
+    <script src="morse.js?v=6"></script>
+    <script src="lessons.js?v=32"></script>
+    <script src="midi.js?v=9"></script>
+    <script src="app.js?v=17"></script>
 </body>
 
 </html>

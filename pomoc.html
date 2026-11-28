@@ -265,30 +265,32 @@
     <div class="card" id="s2">
         <h2>2. Tryby lekcji do wyboru</h2>
         <ul>
-            <li><strong>Metoda Kocha (stopniowe pary).</strong> Pełna 40-znakowa sekwencja (zgodna z LCWO / G4FON)
+            <li><strong>Metoda Kocha.</strong> Pełna 40-znakowa sekwencja (zgodna z LCWO / G4FON)
                 podzielona na 20 par: <code>KM</code>, <code>RS</code>, <code>UA</code>, <code>PT</code>,
                 <code>LO</code>, <code>WI</code>, <code>NJ</code>, <code>EF</code>, <code>ØY</code>, <code>VG</code>,
                 <code>5Q</code>, <code>9Z</code>, <code>H3</code>, <code>8B</code>, <code>?4</code>, <code>27</code>,
-                <code>C1</code>, <code>D6</code>, <code>X=</code>, <code>/&lt;SK&gt;</code>. Możesz ćwiczyć <em>tylko
-                    nowe znaki</em> z wybranej lekcji albo tryb <em>ze wszystkimi poprzednimi</em> (zwiększający
-                częstotliwość nowej pary).
+                <code>C1</code>, <code>D6</code>, <code>X=</code>, <code>/&lt;SK&gt;</code>. Wybierz lekcję i zakres:
+                <em>Tylko nowe</em> albo <em>Wszystkie</em> (nowa para wraz z poprzednimi znakami).
             </li>
+            <li><strong>Tylko litery.</strong> Losowe grupy liter A–Z o wybranej długości od 1 do 10 znaków.</li>
+            <li><strong>Tylko cyfry.</strong> Losowe grupy cyfr 0–9 o wybranej długości od 1 do 10 znaków.</li>
+            <li><strong>Losowe znaki.</strong> Losowe grupy liter i cyfr o wybranej długości od 1 do 10 znaków.</li>
             <li><strong>Znaki wywoławcze.</strong> Generuje realistyczne znaki krótkofalarskie (np. <code>SQ1KSM</code>,
-                <code>DL4AB</code>, <code>K1A</code>) dopasowane do wybranej długości (od 3 do 10 znaków).
-            </li>
+                <code>DL4AB</code>, <code>K1A</code>) o wybranej długości od 3 do 10 znaków. W polu <em>Dodaj</em>
+                możesz wybrać sam znak (np. <code>SQ1KSM</code>), losowy dodatek <code>/P</code>, <code>/QRP</code>
+                lub <code>/MM</code>, albo znak zapytania po znaku (np. <code>SQ1KSM?</code>) do ćwiczenia prośby
+                o potwierdzenie. Znak zapytania jest interpunkcją, nie częścią znaku wywoławczego.</li>
             <li><strong>Krótkie łączności (QSO).</strong> Ćwiczy całe frazy stosowane na pasmach (np.
                 <code>CQ TEST SQ1KSM</code>, <code>CQ SOTA SQ1KSM/P</code>, raporty <code>599</code>/<code>579</code>,
                 pożegnania <code>73 &lt;AR&gt; &lt;SK&gt;</code>) z automatycznym wstawieniem Twojego znaku wpisanego w
                 <code>⚙ Ustawienia</code>.
             </li>
-            <li><strong>Losowe znaki / Tylko litery.</strong> Grupy losowych liter oraz cyfr o wybranej długości od 1 do
-                10 znaków.</li>
-            <li><strong>Własny plik (.txt / .csv).</strong> Pozwala wczytać z dysku lub telefonu własną listę słów,
-                skrótów Q albo zdań.</li>
             <li><strong>Swobodne nadawanie (dekoder na żywo).</strong> Tryb bez wzorca — nadajesz dowolny tekst kluczem,
                 a dekoder wyświetla na bieżąco ostatnie 20 znaków (jedną linię) z automatycznym wstawianiem odstępów
                 między wyrazami. <em>W tym trybie przyciski „Powtórz", „Zeruj liczniki" oraz „🎧 Auto-QSO" są ukryte —
                     bo nie ma wzorca do powtórzenia ani nadania.</em></li>
+            <li><strong>Własny plik (.txt / .csv).</strong> Pozwala wczytać własną listę słów, skrótów Q albo zdań
+                z dysku lub wkleić tekst ze schowka.</li>
         </ul>
     </div>
 
@@ -296,17 +298,20 @@
         <h2>3. Własne pliki (.txt / .csv) — zasady przygotowania</h2>
         <ul>
             <li><strong>Format zapisu.</strong> Wpisz wyrazy lub krótkie zdania po jednym w każdej linii (oddzielone
-                Enterem) albo oddzielone średnikiem <code>;</code>.</li>
+                Enterem) albo oddzielone średnikiem <code>;</code> lub pionową kreską <code>|</code>. Możesz wybrać
+                <em>Wczytaj plik</em> albo <em>Wklej ze schowka</em>.</li>
+            <li><strong>Wklejanie ze schowka.</strong> Przeglądarka musi zezwolić na dostęp do schowka (zwykle wymaga
+                to strony HTTPS lub localhost). Jeśli schowek jest pusty albo niedostępny, komunikat pojawi się przy
+                kontrolkach pliku.</li>
             <li><strong>Automatyczny podział długich zdań.</strong> Zdania dłuższe niż 20 znaków są automatycznie
                 dzielone na krótsze fragmenty (bez przecinania wyrazów), aby mieściły się w jednym wierszu na ekranie
                 telefonu.</li>
-            <li><strong>Polskie litery.</strong> Jeśli w pliku znajdują się znaki <code>Ą Ć Ę Ł Ń Ó Ś Ź Ż</code>,
+            <li><strong>Polskie litery.</strong> Jeśli w tekście znajdują się znaki <code>Ą Ć Ę Ł Ń Ó Ś Ź Ż</code>,
                 program zapyta po wczytaniu, czy zamienić je na zwykłe litery łacińskie
                 (<code>A C E L N O S Z Z</code>), czy zachować polskie kody telegraficzne CW.</li>
             <li><strong>Kropki i przecinki.</strong> Jeśli tekst zawiera kropki lub przecinki (<code>. ,</code>),
                 program zapyta, czy je usunąć przed ćwiczeniem, czy pozostawić do nadawania.</li>
-            <li><strong>Kolejność.</strong> Możesz wybrać podawanie pozycji <em>Losowo z pliku</em> lub <em>Po kolei z
-                    pliku</em> (z licznikiem postępu).</li>
+            <li><strong>Kolejność.</strong> Wybierz <em>Losowo</em> albo <em>Po kolei</em> (z licznikiem postępu).</li>
         </ul>
     </div>
 
@@ -317,7 +322,8 @@
                 pobiera kolejny znak, grupę albo zdanie (w trybie <em>Swobodnego nadawania</em> przycisk zmienia nazwę
                 na <strong>Wyczyść</strong> i zeruje ekran).</li>
             <li><span class="badge">🔊 Odsłuchaj</span> / <span class="badge badge-err">⏹ Zatrzymaj</span> —
-                odtwarza bieżący wzór (lub nadany tekst w trybie swobodnym) w aktualnym tempie WPM. Ponowne kliknięcie,
+                odtwarza bieżący wzór (lub nadany tekst w trybie swobodnym) w tempie ustawionym suwakiem
+                <em>WPM odtwarzania (odsłuch)</em>. Ponowne kliknięcie,
                 zmiana słowa lub dotknięcie klawisza natychmiast przerywa odsłuch.</li>
             <li><span class="badge">Powtórz</span> — zeruje aktualnie wpisane znaki, pozwalając powtórzyć
                 bieżące zadanie od początku. <em>Jeśli nic nie wpisano, przycisk działa od razu (bez pytania). Jeśli
@@ -359,9 +365,14 @@
             </li>
         </ul>
         <div class="tip">
-            <strong>Wskazówka WPM i Audio:</strong> W <code>⚙ Ustawienia</code> możesz zwiększyć <em>Przerwę między
-                literami</em> (np. na <code>4.0x dit</code> — metoda Farnswortha), ustawić limit maksymalnej pauzy w
-            wyrazie oraz dopasować częstotliwość tonu (<code>350–950 Hz</code>). Jeśli na głośniku telefonu dźwięk
+            <strong>Wskazówka WPM i Audio:</strong> W <code>⚙ Ustawienia</code> ustawiasz osobno tempo
+            <em>WPM (Dongle + Dekoder)</em> oraz tempo <em>WPM odtwarzania (odsłuch)</em> — dzięki temu możesz nadawać
+            szybko i słuchać wzoru wolniej. Osobne checkboxy pozwalają niezależnie synchronizować dekoder i odtwarzanie
+            z WPM nadawania; po odznaczeniu każdego pojawia się jego osobny suwak.
+            <em>Maks. przerwa między literami</em> ustawia tolerancję dekodera — większa wartość nie wymusza
+            dłuższych przerw w odsłuchu. W trybie Odbiór ustawisz też opóźnienie pojawienia się tekstu i przycisków
+            odpowiedzi po odsłuchu (0–15 s). Możesz również ustawić limit maksymalnej pauzy
+            w wyrazie oraz dopasować częstotliwość tonu (<code>350–950 Hz</code>). Jeśli na głośniku telefonu dźwięk
             delikatnie przycicha po pierwszej kropce (systemowy limiter głośnika), zmniejsz suwak <em>Głośność</em> w
             aplikacji na ok. <code>30–35%</code> i podgłośnij sam telefon przyciskami bocznymi.
         </div>

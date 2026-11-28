@@ -110,6 +110,21 @@ button.active-mode {
     font-weight: 600;
 }
 
+.install-btn {
+    background: #00a896;
+    color: #001513;
+    border-color: #00d1b2;
+    font-weight: 700;
+}
+
+.install-btn:hover {
+    background: #00d1b2;
+}
+
+.install-btn[hidden] {
+    display: none;
+}
+
 .danger-btn {
     background: #e53935;
     color: #ffffff;
@@ -292,7 +307,7 @@ button.active-mode {
 }
 
 .receive-paddle-label {
-    font-size: .82em;
+    font-size: 1.5em;
     opacity: .8;
 }
 
@@ -359,6 +374,7 @@ body.focus-mode #status:not(.status-error) {
 }
 
 body.focus-mode fieldset {
+    position: relative;
     border: none;
     background: transparent;
     padding: 0;
@@ -370,10 +386,14 @@ body.focus-mode fieldset {
 }
 
 body.focus-mode .lesson-action-buttons {
+    position: absolute;
+    z-index: 2;
+    bottom: 2.4rem;
+    left: .6rem;
+    width: calc(100% - 1.2rem);
     justify-content: center;
-    gap: .4rem;
-    margin-bottom: .4rem !important;
-    flex-shrink: 0;
+    gap: .6rem;
+    margin: 0 !important;
 }
 
 body.focus-mode .lesson-action-buttons button {
@@ -382,6 +402,7 @@ body.focus-mode .lesson-action-buttons button {
 }
 
 body.focus-mode .lesson-box {
+    position: relative;
     flex: 1;
     min-height: 0;
     width: 100%;
@@ -392,6 +413,14 @@ body.focus-mode .lesson-box {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+body.focus-mode .lesson-stats {
+    position: absolute;
+    right: .6rem;
+    bottom: .35rem;
+    left: .6rem;
+    text-align: center;
 }
 
 body.focus-mode .lesson-grid {

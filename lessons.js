@@ -14,6 +14,8 @@ const fileControls = document.getElementById("file-controls"), fileUploadBtn = d
 const fileOrder = document.getElementById("file-order"), fileInfo = document.getElementById("file-info"), lessonLegend = document.getElementById("lesson-legend");
 const lessonBoxEl = document.getElementById("lesson-box"), lessonGridEl = document.getElementById("lesson-grid"), lessonMsgEl = document.getElementById("lesson-msg"), lessonStatsEl = document.getElementById("lesson-stats");
 const playDemoBtn = document.getElementById("lesson-play-btn");
+const receiveRevealDelaySlider = document.getElementById("receive-reveal-delay-slider");
+const receiveRevealDelayOut = document.getElementById("receive-reveal-delay-out");
 
 const KOCH_STAGES = new Array(
     new Array("K", "M"), new Array("R", "S"), new Array("U", "A"), new Array("P", "T"), new Array("L", "O"),
@@ -25,10 +27,22 @@ const kochControls = document.getElementById("koch-controls");
 const kochStage = document.getElementById("koch-stage");
 const kochScope = document.getElementById("koch-scope");
 
-let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, isPlayingDemo = false, demoAbort = false;
+let targetWord = "SQ1KSM", typedWord = "", passedCount = 0, errorCount = 0, currentWordErrorCount = 0, isPlayingDemo = false, demoAbort = false;
+const skipAfterThreeErrorsCheck = document.getElementById("skip-after-three-errors-check");
+const skipAfterErrorsSlider = document.getElementById("skip-after-errors-slider");
 let customWords = new Array(), customWordIdx = 0;
 let receiveChecked = false, receivePlaybackDone = false, receiveStarted = false;
+let receiveTextRevealed = false, receiveRevealTimer = null;
 let receiveCountdownShown = false, receiveCountdownPromise = null;
+
+function clearReceiveRevealTimer() {
+    if (receiveRevealTimer !== null) clearTimeout(receiveRevealTimer);
+    receiveRevealTimer = null;
+}
+
+receiveRevealDelaySlider.addEventListener("input", () => {
+    receiveRevealDelayOut.textContent = `${receiveRevealDelaySlider.value} s`;
+});
 
 /* ============================================================
    AUTO-QSO — zmienne stanu (muszą być na początku, bo funkcje niżej ich używają)
@@ -38,7 +52,7 @@ let autoQsoRepeatOnError = true;
 let autoQsoShowText = false;
 let autoQsoPlayFirst = true;
 let autoQsoGenerating = false;
-let autoQsoIdleTimer = null;
+let autoQsoIdleTimer = null, autoQsoErrorTimer = null;
 const autoStatusBar = document.createElement("div");
 
 function getMyCall() {
@@ -349,6 +363,7 @@ function generateLessonWord() {
             : callsign;
     }
     if (mode === "letters") return Array.from({ length: len }, () => randChar(letters)).join("");
+    if (mode === "digits") return Array.from({ length: len }, () => randChar(digits)).join("");
     return Array.from({ length: len }, () => randChar(all)).join("");
 }
 
@@ -367,14 +382,14 @@ function renderLesson() {
         lessonGridEl.classList.add("receive-mode");
         lessonGridEl.style.removeProperty("--cols");
         lessonGridEl.innerHTML = "";
-        if (receivePlaybackDone || receiveChecked) {
+        if (receiveTextRevealed || receiveChecked) {
             const label = document.createElement("div");
             label.textContent = targetWord;
             label.style.color = lessonMsgEl.style.color || "#e6e6e6";
             lessonGridEl.appendChild(label);
         } else {
             const label = document.createElement("div");
-            label.textContent = "🔊 Odsłuchaj wzór";
+            label.textContent = "🔊 Odtwórz";
             label.style.fontSize = "1.25rem";
             label.style.color = "#9aa3b0";
             lessonGridEl.appendChild(label);
@@ -454,19 +469,20 @@ function confirmReceiveAnswer(correct) {
     if (!lessonDirection || lessonDirection.value !== "receive" ||
         !receivePlaybackDone || receiveChecked) return;
     receiveChecked = true;
+    receiveTextRevealed = true;
+    clearReceiveRevealTimer();
+    lessonMsgEl.textContent = "";
     if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
     if (correct) {
         passedCount++;
         flashBox("flash-ok");
         if (typeof playFeedback === "function") playFeedback(true);
         lessonMsgEl.style.color = "#00e676";
-        lessonMsgEl.textContent = `Dobrze: ${targetWord}`;
     } else {
         errorCount++;
         flashBox("flash-err");
         if (typeof playFeedback === "function") playFeedback(false);
         lessonMsgEl.style.color = "#ff5252";
-        lessonMsgEl.textContent = `Źle: ${targetWord}`;
     }
     renderLesson();
     setTimeout(() => {
@@ -477,32 +493,43 @@ function confirmReceiveAnswer(correct) {
 function triggerLessonFail(msg, reason) {
     clearTimeout(lessonGapTimer);
     if (typeof playFeedback === "function") playFeedback(false);
-    errorCount++; flashBox("flash-err");
+    errorCount++;
+    currentWordErrorCount++;
+    flashBox("flash-err");
     const reasonStr = reason ? ` [${reason}]` : "";
     lessonMsgEl.style.color = "#ff5252";
     lessonMsgEl.textContent = msg + reasonStr;
     typedWord = "";
     symbolBuf = "";
     renderLesson();
+    const skipCurrentWord = skipAfterThreeErrorsCheck && skipAfterThreeErrorsCheck.checked &&
+        lessonDirection && lessonDirection.value === "send" &&
+        currentWordErrorCount >= Number(skipAfterErrorsSlider ? skipAfterErrorsSlider.value : 3);
     // 🔧 AUTO-QSO: powiadom o błędzie
-    if (autoQsoActive) autoQsoOnError();
+    if (autoQsoActive) autoQsoOnError(skipCurrentWord);
+    else if (skipCurrentWord) nextLessonWord();
 }
 
 function stopDemoWord() {
     demoAbort = true; isPlayingDemo = false; toneOff();
     if (playDemoBtn) {
-        playDemoBtn.textContent = "🔊 Odsłuchaj wzór";
+        playDemoBtn.textContent = "🔊 Odtwórz";
         playDemoBtn.classList.remove("danger-btn"); playDemoBtn.classList.add("nav-btn");
     }
 }
 
 function nextLessonWord(restartReceiveCountdown = false, autoStartReceive = true) {
+    clearReceiveRevealTimer();
     stopDemoWord(); clearTimeout(lessonGapTimer);
+    clearTimeout(autoQsoErrorTimer);
+    autoQsoErrorTimer = null;
+    currentWordErrorCount = 0;
     lessonMsgEl.style.color = "";
     targetWord = generateLessonWord(); typedWord = ""; symbolBuf = "";
     if (restartReceiveCountdown) receiveCountdownShown = false;
     receiveChecked = false;
     receivePlaybackDone = false;
+    receiveTextRevealed = false;
     if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
     updateLessonControlsUI();
     renderLesson();
@@ -580,6 +607,7 @@ function checkLessonLetter(letter) {
     if (typedWord === targetWord) {
         clearTimeout(lessonGapTimer);
         if (typeof playFeedback === "function") playFeedback(true);
+        currentWordErrorCount = 0;
         passedCount++; flashBox("flash-ok");
         lessonMsgEl.style.color = "#00e676"; lessonMsgEl.textContent = "Zaliczone!";
         // 🔧 AUTO-QSO: sukces — następny wyraz
@@ -661,12 +689,22 @@ async function playDemoWord() {
         if (lessonDirection.value !== "receive" || demoAbort) return;
     }
 
+    const isReceiveMode = lessonDirection && lessonDirection.value === "receive";
+    if (isReceiveMode) {
+        clearReceiveRevealTimer();
+        receivePlaybackDone = false;
+        receiveTextRevealed = false;
+        if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
+        updateLessonControlsUI();
+        renderLesson();
+    }
+
     isPlayingDemo = true; demoAbort = false; initAudio();
     if (playDemoBtn) {
         playDemoBtn.textContent = "⏹ Zatrzymaj";
         playDemoBtn.classList.remove("nav-btn"); playDemoBtn.classList.add("danger-btn");
     }
-    const d = Math.round(1200 / Number(wpmSlider.value));
+    const d = Math.round(1200 / Number(playbackWpmSlider.value));
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     for (const ch of tokenizeWord(textToPlay)) {
         if (demoAbort) break;
@@ -680,14 +718,27 @@ async function playDemoWord() {
             await sleep(d);
         }
         if (demoAbort) break;
-        await sleep(d * (charGapMult - 1));
+        await sleep(d * 2);
     }
-    if (!demoAbort && lessonDirection && lessonDirection.value === "receive") {
+    if (!demoAbort && isReceiveMode) {
         receiveStarted = true;
-        updateLessonControlsUI();
-        receivePlaybackDone = true;
+        const revealDelayMs = Number(receiveRevealDelaySlider.value) * 1000;
+        receivePlaybackDone = revealDelayMs === 0;
+        receiveTextRevealed = revealDelayMs === 0;
         updateLessonControlsUI();
         renderLesson();
+        if (revealDelayMs > 0) {
+            clearReceiveRevealTimer();
+            receiveRevealTimer = setTimeout(() => {
+                receiveRevealTimer = null;
+                if (lessonDirection.value === "receive" && !receiveChecked) {
+                    receivePlaybackDone = true;
+                    receiveTextRevealed = true;
+                    updateLessonControlsUI();
+                    renderLesson();
+                }
+            }, revealDelayMs);
+        }
     }
     stopDemoWord();
 }
@@ -737,6 +788,8 @@ function setAutoQsoMode(active) {
     if (!active) {
         clearAutoStatus();
         clearTimeout(autoQsoIdleTimer);
+        clearTimeout(autoQsoErrorTimer);
+        autoQsoErrorTimer = null;
         autoQsoGenerating = false;
         lessonGridEl.style.opacity = "1";
     }
@@ -756,7 +809,7 @@ async function autoQsoTxAndWait() {
     await new Promise(r => setTimeout(r, 200));
 
     const sleep = ms => new Promise(r => setTimeout(r, ms));
-    const d = Math.round(1200 / Number(wpmSlider.value));
+    const d = Math.round(1200 / Number(playbackWpmSlider.value));
     initAudio();
 
     for (const ch of tokenizeWord(targetWord)) {
@@ -771,7 +824,7 @@ async function autoQsoTxAndWait() {
             toneOff();
             await sleep(d);
         }
-        await sleep(d * (charGapMult - 1));
+        await sleep(d * 2);
     }
 
     if (!autoQsoActive) return;
@@ -792,6 +845,8 @@ async function autoQsoTxAndWait() {
 function autoQsoOnSuccess() {
     if (!autoQsoActive) return;
     clearTimeout(autoQsoIdleTimer);
+    clearTimeout(autoQsoErrorTimer);
+    autoQsoErrorTimer = null;
     setAutoStatus("✅ Dobrze! Następny wyraz…", "wait");
     setTimeout(() => {
         if (!autoQsoActive) return;
@@ -800,12 +855,21 @@ function autoQsoOnSuccess() {
     }, 1200);
 }
 
-function autoQsoOnError() {
+function autoQsoOnError(skipCurrentWord = false) {
     if (!autoQsoActive) return;
     clearTimeout(autoQsoIdleTimer);
-    if (autoQsoRepeatOnError) {
+    clearTimeout(autoQsoErrorTimer);
+    if (skipCurrentWord) {
+        setAutoStatus("❌ 3 błędy — następne zadanie…", "wait");
+        autoQsoErrorTimer = setTimeout(() => {
+            autoQsoErrorTimer = null;
+            if (!autoQsoActive) return;
+            nextLessonWord();
+        }, 1500);
+    } else if (autoQsoRepeatOnError) {
         setAutoStatus("❌ Błąd — powtarzam ten sam wyraz…", "wait");
-        setTimeout(() => {
+        autoQsoErrorTimer = setTimeout(() => {
+            autoQsoErrorTimer = null;
             if (!autoQsoActive) return;
             typedWord = ""; symbolBuf = "";
             renderLesson();
@@ -813,7 +877,8 @@ function autoQsoOnError() {
         }, 1500);
     } else {
         setAutoStatus("❌ Błąd — następny wyraz…", "wait");
-        setTimeout(() => {
+        autoQsoErrorTimer = setTimeout(() => {
+            autoQsoErrorTimer = null;
             if (!autoQsoActive) return;
             nextLessonWord();
             // nextLessonWord() sam wywoła autoQsoTxAndWait()
@@ -922,11 +987,13 @@ document.getElementById("lesson-next-btn").addEventListener("click", () => { les
 document.getElementById("lesson-reset-btn").addEventListener("click", async () => {
     if (lessonDirection && lessonDirection.value === "receive") {
         receiveCountdownShown = false;
+        clearReceiveRevealTimer();
         stopDemoWord(); clearTimeout(lessonGapTimer);
         lessonMsgEl.style.color = "";
         lessonMsgEl.textContent = "";
         receiveChecked = false;
         receivePlaybackDone = false;
+        receiveTextRevealed = false;
         if (receiveAnswerRow) receiveAnswerRow.style.display = "none";
         renderLesson();
         setTimeout(() => playDemoWord(), 350);

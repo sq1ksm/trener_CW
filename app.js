@@ -4,13 +4,20 @@ function saveSettings() {
     localStorage.setItem("cwTrainerPrefs", JSON.stringify({
         myCall: getMyCall(),
         wpm: wpmSlider.value,
+        playbackWpm: playbackWpmSlider.value,
+        rxWpm: rxWpmSlider.value,
+        syncDecoder: syncCheck.checked,
+        syncPlayback: syncPlaybackCheck.checked,
         vol: volSlider.value,
         freq: freqSlider.value,
         charGap: charGapSlider.value,
         maxGap: maxGapSlider.value,
         strictGap: strictGapCheck.checked,
         softError: softErrorCheck ? softErrorCheck.checked : true,
+        skipAfterThreeErrors: skipAfterThreeErrorsCheck ? skipAfterThreeErrorsCheck.checked : false,
+        skipAfterErrorsCount: skipAfterErrorsSlider ? skipAfterErrorsSlider.value : "3",
         soundFeedback: soundFeedbackCheck ? soundFeedbackCheck.checked : false,
+        receiveRevealDelay: receiveRevealDelaySlider.value,
         prog: activeBtn ? activeBtn.dataset.prog : "7",
         lessonType: lessonType.value,
         lessonLen: lessonLen.value,
@@ -29,15 +36,41 @@ function loadSettings() {
     if (raw) {
         try {
             const p = JSON.parse(raw);
+            if (typeof p.syncDecoder === "boolean") syncCheck.checked = p.syncDecoder;
+            else if (typeof p.syncWpm === "boolean") syncCheck.checked = p.syncWpm;
+            if (typeof p.syncPlayback === "boolean") syncPlaybackCheck.checked = p.syncPlayback;
+            else if (typeof p.syncWpm === "boolean") syncPlaybackCheck.checked = p.syncWpm;
+            else if (p.playbackWpm && p.wpm && Number(p.playbackWpm) !== Number(p.wpm)) syncPlaybackCheck.checked = false;
             if (p.myCall && myCallInput) myCallInput.value = p.myCall;
             if (p.wpm) { wpmSlider.value = p.wpm; sendDongleWpm(Number(p.wpm)); }
+            if (!syncCheck.checked) {
+                const savedRxWpm = p.rxWpm || p.wpm;
+                if (savedRxWpm) {
+                    rxWpmSlider.value = savedRxWpm;
+                    rxWpmOut.textContent = `${rxWpmSlider.value} WPM`;
+                    rxWpm = Number(rxWpmSlider.value);
+                }
+            }
+            if (!syncPlaybackCheck.checked) {
+                const playbackWpm = p.playbackWpm || p.wpm;
+                if (playbackWpm) {
+                    playbackWpmSlider.value = playbackWpm;
+                    playbackWpmOut.textContent = `${playbackWpmSlider.value} WPM`;
+                }
+            }
             if (p.vol) { volSlider.value = p.vol; volume = Number(p.vol) / 100; volOut.textContent = `${p.vol}%`; }
             if (p.freq) { freqSlider.value = p.freq; toneFreq = Number(p.freq); freqOut.textContent = `${p.freq} Hz`; }
             if (p.charGap) { charGapSlider.value = p.charGap; charGapMult = Number(p.charGap); charGapOut.textContent = `${charGapMult.toFixed(1)}x dit`; }
             if (p.maxGap) { maxGapSlider.value = p.maxGap; maxGapMult = Number(p.maxGap); maxGapOut.textContent = `${maxGapMult}x dit`; }
             if (typeof p.strictGap === "boolean") { strictGapCheck.checked = p.strictGap; maxGapRow.style.display = p.strictGap ? "flex" : "none"; }
             if (typeof p.softError === "boolean" && softErrorCheck) { softErrorCheck.checked = p.softError; }
+            if (typeof p.skipAfterThreeErrors === "boolean" && skipAfterThreeErrorsCheck) { skipAfterThreeErrorsCheck.checked = p.skipAfterThreeErrors; }
+            if (p.skipAfterErrorsCount !== undefined && skipAfterErrorsSlider) { skipAfterErrorsSlider.value = p.skipAfterErrorsCount; }
             if (typeof p.soundFeedback === "boolean" && soundFeedbackCheck) { soundFeedbackCheck.checked = p.soundFeedback; }
+            if (p.receiveRevealDelay !== undefined) {
+                receiveRevealDelaySlider.value = p.receiveRevealDelay;
+                receiveRevealDelayOut.textContent = `${receiveRevealDelaySlider.value} s`;
+            }
             if (p.lessonLen) lessonLen.value = p.lessonLen;
             const callsignSuffix = document.getElementById("callsign-suffix");
             if (p.callsignSuffix && callsignSuffix) callsignSuffix.value = p.callsignSuffix;
@@ -75,8 +108,8 @@ if (myCallInput) {
     });
 }
 
-[wpmSlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck,
-    softErrorCheck, soundFeedbackCheck, lessonType, lessonLen, document.getElementById("callsign-suffix"), fileOrder, kochStage, kochScope,
+[wpmSlider, playbackWpmSlider, rxWpmSlider, syncCheck, syncPlaybackCheck, receiveRevealDelaySlider, volSlider, freqSlider, charGapSlider, maxGapSlider, strictGapCheck,
+    softErrorCheck, skipAfterThreeErrorsCheck, skipAfterErrorsSlider, soundFeedbackCheck, lessonType, lessonLen, document.getElementById("callsign-suffix"), fileOrder, kochStage, kochScope,
     noteDitEl, noteDahEl, anyNoteEl].forEach(el => {
         if (el) el.addEventListener("change", saveSettings);
     });
@@ -84,6 +117,27 @@ if (myCallInput) {
 document.querySelectorAll(".mode-btn").forEach(btn => btn.addEventListener("click", saveSettings));
 
 loadSettings();
+const skipAfterErrorsRow = document.getElementById("skip-after-errors-row");
+const skipAfterErrorsOut = document.getElementById("skip-after-errors-out");
+function updateSkipAfterErrorsUI() {
+    if (skipAfterErrorsRow && skipAfterThreeErrorsCheck) {
+        skipAfterErrorsRow.style.display = skipAfterThreeErrorsCheck.checked ? "flex" : "none";
+    }
+    if (skipAfterErrorsOut && skipAfterErrorsSlider) {
+        const count = Number(skipAfterErrorsSlider.value);
+        const lastTwoDigits = count % 100;
+        const lastDigit = count % 10;
+        const unit = count === 1 ? "błąd"
+            : lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14) ? "błędy"
+                : "błędów";
+        skipAfterErrorsOut.textContent = `${count} ${unit}`;
+    }
+}
+updateSkipAfterErrorsUI();
+if (skipAfterThreeErrorsCheck) skipAfterThreeErrorsCheck.addEventListener("change", updateSkipAfterErrorsUI);
+if (skipAfterErrorsSlider) skipAfterErrorsSlider.addEventListener("input", updateSkipAfterErrorsUI);
+updateWpmSyncControls();
+updatePlaybackWpmSyncControls();
 
 const noteSelectorsEl = document.getElementById("note-selectors");
 function updateNoteSelectorsVisibility() {
@@ -192,3 +246,43 @@ document.addEventListener("fullscreenchange", () => {
         setFocusMode(false);
     }
 });
+
+// Instalacja PWA i obsługa trybu offline
+let installPrompt = null;
+const installBtn = document.getElementById("install-app-btn");
+
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    installPrompt = event;
+    if (installBtn) installBtn.hidden = false;
+});
+
+if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+        if (!installPrompt) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+                alert("Na iPhone/iPad: naciśnij Udostępnij, a następnie „Do ekranu głównego”.");
+            }
+            return;
+        }
+
+        installPrompt.prompt();
+        await installPrompt.userChoice;
+        installPrompt = null;
+        installBtn.hidden = true;
+    });
+}
+
+window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    if (installBtn) installBtn.hidden = true;
+});
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(error => {
+            console.warn("Nie udało się zarejestrować Service Worker:", error);
+        });
+    });
+}

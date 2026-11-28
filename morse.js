@@ -80,6 +80,8 @@ let txWpm = 20, rxWpm = 20, ditMs = 60, charGapMult = 3.0, maxGapMult = 10;
 let symbolBuf = "", lessonGapTimer = null;
 
 const wpmSlider = document.getElementById("wpm-slider");
+const playbackWpmSlider = document.getElementById("playback-wpm-slider");
+const playbackWpmOut = document.getElementById("playback-wpm-out");
 const strictGapCheck = document.getElementById("strict-gap-check");
 const softErrorCheck = document.getElementById("soft-error-check");
 const volSlider = document.getElementById("vol-slider"), volOut = document.getElementById("vol-out");
@@ -97,6 +99,9 @@ freqSlider.addEventListener("input", () => {
 
     freqSlider.style.accentColor = color;
     freqOut.style.color = color;
+});
+playbackWpmSlider.addEventListener("input", () => {
+    playbackWpmOut.textContent = `${playbackWpmSlider.value} WPM`;
 });
 
 const soundFeedbackCheck = document.getElementById("sound-feedback-check");
